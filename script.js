@@ -75,6 +75,31 @@ const hbBgm = new Audio('assets/audio/happy_birthday.mp3');
 hbBgm.loop = true;
 hbBgm.volume = 0.6;
 
+// Tự động gỡ bỏ chính sách chặn Autoplay âm thanh trên iOS ngay cú chạm màn hình đầu tiên
+function unlockAudioOnFirstTouch() {
+    const unlock = () => {
+        if (pianoAudioCtx && pianoAudioCtx.state === 'suspended') {
+            pianoAudioCtx.resume();
+        }
+        if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+            sharedAudioCtx.resume();
+        }
+        
+        if (hbBgm) {
+            hbBgm.play().then(() => {
+                hbBgm.pause();
+                hbBgm.currentTime = 0;
+            }).catch(() => {});
+        }
+
+        document.removeEventListener('touchstart', unlock);
+        document.removeEventListener('click', unlock);
+    };
+
+    document.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('click', unlock, { once: true });
+}
+
 // ==========================================
 // 1. CẤU HÌNH BIẾN CHÍNH (SCENE 1) - RESPONSIVE SYNC
 // ==========================================
@@ -87,7 +112,6 @@ for (let i = 1; i <= 31; i++) {
 }
 wrapper.innerHTML = html;
 
-// [RESPONSIVE FIX] Lấy chiều cao thực tế của thẻ số theo responsive CSS
 function getNumberHeight() {
     const sampleItem = document.querySelector('.number-item');
     return sampleItem ? sampleItem.offsetHeight : 90;
@@ -194,15 +218,16 @@ function playBlowSound() {
             data[i] = Math.random() * 2 - 1;
         }
 
-        const noise = ctx.createBufferSource();
+        // Đã sửa tất cả các biến ctx thành sharedAudioCtx
+        const noise = sharedAudioCtx.createBufferSource();
         noise.buffer = buffer;
-        const filter = ctx.createBiquadFilter();
+        const filter = sharedAudioCtx.createBiquadFilter();
         filter.type = 'lowpass';
         filter.frequency.setValueAtTime(250, sharedAudioCtx.currentTime);
         filter.frequency.linearRampToValueAtTime(550, sharedAudioCtx.currentTime + duration / 2);
         filter.frequency.linearRampToValueAtTime(150, sharedAudioCtx.currentTime + duration);
 
-        const gain = ctx.createGain();
+        const gain = sharedAudioCtx.createGain();
         gain.gain.setValueAtTime(0.01, sharedAudioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.25, sharedAudioCtx.currentTime + 0.4);
         gain.gain.linearRampToValueAtTime(0.001, sharedAudioCtx.currentTime + duration);
@@ -1080,4 +1105,8 @@ function initWishCardsInteraction() {
     }
 }
 
-window.addEventListener('DOMContentLoaded', runAnimationFlow);
+// Khởi chạy ứng dụng và lắng nghe thao tác chạm
+window.addEventListener('DOMContentLoaded', () => {
+    unlockAudioOnFirstTouch();
+    runAnimationFlow();
+});
