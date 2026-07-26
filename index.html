@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Birthday Intro Scene</title>
+
+    <!-- IMPORT FONTS -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- IMPORT CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- SCENE 1: Màn hình Intro chọn ngày -->
+    <div id="scene-intro">
+        <div class="particles" id="particles"></div>
+        <h1 class="happy-birthday" id="hb-text">Happy Birthday</h1>
+
+        <div class="center-group">
+            <div class="arrow" id="arrow">→</div>
+            <div class="center-glow" id="glow"></div>
+
+            <div class="numbers-window">
+                <div class="numbers-wrapper" id="numbers-wrapper"></div>
+            </div>
+
+            <div class="month-text" id="month">Tháng 6</div>
+        </div>
+    </div>
+
+    <!-- SCENE 2: Màn hình Bánh sinh nhật & Thắp nến -->
+    <div id="scene-cake">
+        <div class="particles bright"></div>
+        <div class="warm-glow" id="warm-glow"></div>
+
+        <img src="assets/image/Bunting_Garland.svg" class="bunting-garland" id="bunting" alt="Bunting Garland">
+
+        <div class="cake-container" id="cake-container">
+            <img src="assets/image/cake_birthday.svg" class="cake-img" alt="Birthday Cake">
+            <div class="candle-flame" id="candle-flame"></div>
+            <div class="smoke" id="smoke"></div>
+        </div>
+
+        <img src="assets/image/Matchstick.svg" class="matchstick" id="matchstick" alt="Matchstick">
+
+        <div class="subtitle-container">
+            <p class="subtitle-text" id="subtitle-text"></p>
+            <p class="instruction-text" id="instruction-text">👆 Nhấn giữ hoặc vuốt lên ngọn nến để thổi nến</p>
+        </div>
+
+        <div id="candle-container">
+            <svg class="blow-progress-ring" viewBox="0 0 64 64">
+                <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
+                <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
+            </svg>
+        </div>
+    </div>
+
+    <!-- SCENE 3: CHỌN ĐIỀU ƯỚC -->
+    <div id="scene-wishes" class="scene">
+        <div id="fireflies-container"></div>
+        <div class="wishes-header-small">MỘT ĐIỀU ƯỚC</div>
+        <h2 class="wishes-title">Bây giờ... chọn một điều ước cho ngày sinh nhật của cậu.</h2>
+        <div class="wishes-grid">
+            <div class="wish-card" data-wish="happiness">
+                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
+            </div>
+            <div class="wish-card" data-wish="vietlott">
+                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
+            </div>
+            <div class="wish-card" data-wish="health">
+                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
+            </div>
+            <div class="wish-card" data-wish="peace">
+                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
+            </div>
+        </div>
+    </div>
+
+    <!-- SCENE 4: MÁY PHÁT NHẠC -->
+    <div id="scene-player" class="scene">
+        <div class="fireflies-container"></div>
+        <audio id="bg-audio" preload="auto"></audio>
+        <div class="player-wrapper">
+            <div class="turntable-box">
+                <img src="assets/image/disc.svg" alt="Đế máy phát" class="turntable-bg">
+                <img id="vinyl-disc" src="" alt="Đĩa nhạc" class="vinyl-record">
+                <div class="turntable-center-pin"></div>
+                <div class="tonearm"></div>
+            </div>
+            <button id="start-listen-btn" class="listen-btn">▶ Bắt đầu lắng nghe</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script src="script.js"></script>
+</body>
+
+</html>
