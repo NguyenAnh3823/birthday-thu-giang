@@ -17,7 +17,9 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    min-height: 100dvh;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     font-family: 'Playfair Display', serif;
 }
@@ -29,6 +31,7 @@ body {
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
     display: flex;
     flex-direction: column;
@@ -175,6 +178,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
     display: flex;
     flex-direction: column;
@@ -235,6 +239,8 @@ body {
     z-index: 4;
     cursor: pointer;
     animation: cakeFloat 3.5s infinite ease-in-out;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 @keyframes cakeFloat {
@@ -434,6 +440,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: #000;
     opacity: 0;
     pointer-events: none;
@@ -478,6 +485,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background-color: #000;
     display: flex;
     flex-direction: column;
@@ -537,6 +545,8 @@ body {
     width: 100%;
     cursor: pointer;
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), filter 0.3s ease;
+    touch-action: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .wish-card img {
@@ -642,6 +652,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
     display: flex;
     flex-direction: column;
@@ -785,6 +796,7 @@ body {
     transform: translateY(20px);
     transition: opacity 1s ease, transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
     white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .listen-btn.show {
@@ -806,7 +818,6 @@ body {
    MEDIA QUERIES FOR SPECIFIC BREAKPOINTS
    ========================================== */
 
-/* Breakpoint: 320px (Mobile nhỏ) */
 @media screen and (max-width: 320px) {
     .happy-birthday {
         font-size: 2.5rem;
@@ -823,21 +834,18 @@ body {
     }
 }
 
-/* Breakpoint: 480px (Mobile lớn) */
 @media screen and (min-width: 321px) and (max-width: 480px) {
     .happy-birthday {
         font-size: 3.2rem;
     }
 }
 
-/* Breakpoint: 768px (Tablet) */
 @media screen and (min-width: 481px) and (max-width: 768px) {
     .happy-birthday {
         font-size: 4rem;
     }
 }
 
-/* Breakpoint: 1024px (Laptop) */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
     .turntable-box {
         width: 500px;
@@ -845,7 +853,6 @@ body {
     }
 }
 
-/* Breakpoint: 1440px (Desktop) */
 @media screen and (min-width: 1025px) and (max-width: 1440px) {
     .turntable-box {
         width: 600px;
@@ -853,7 +860,6 @@ body {
     }
 }
 
-/* Breakpoint: 1920px+ (Màn hình 2K / 4K) */
 @media screen and (min-width: 1441px) {
     .turntable-box {
         width: 700px;
@@ -868,6 +874,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     background: #0a0a1a;
     z-index: 10000;
     display: flex;
