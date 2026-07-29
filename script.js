@@ -128,6 +128,18 @@ const hbBgm = new Audio('assets/audio/happy_birthday.mp3');
 hbBgm.loop = true;
 hbBgm.volume = 0.6;
 
+// HÀM MỞ KHÓA ÂM THANH CHO SAFARI / IPAD OS
+function unlockAudio() {
+    if (hbBgm) {
+        // Thử play và pause ngay lập tức để xin quyền Autoplay từ WebKit
+        hbBgm.play().then(() => {
+            hbBgm.pause();
+            hbBgm.currentTime = 0;
+        }).catch(() => {});
+    }
+    getAudioContext();
+}
+
 // ==========================================
 // 1. CẤU HÌNH SCENE 1
 // ==========================================
@@ -748,6 +760,7 @@ function enableBlowCandleInteraction() {
     };
 
     const startHold = (e) => {
+        unlockAudio();
         playDanDaHappyBirthday();
         if (isBlown) return;
         if (e.touches && e.touches[0]) {
@@ -1184,6 +1197,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (btnYes) {
         btnYes.addEventListener('click', () => {
+            unlockAudio();
             requestAppFullScreen();
 
             surpriseScreen.style.opacity = '0';
