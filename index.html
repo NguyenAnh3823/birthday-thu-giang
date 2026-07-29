@@ -1,133 +1,1042 @@
-<!DOCTYPE html>
-<html lang="vi">
+:root {
+    --bg-color: #2b1631;
+    --text-gold: #f5e2b4;
+    --text-white: #ffffff;
+    --number-height: clamp(50px, 8dvh, 75px);
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    color-scheme: dark;
+    --bg-color-dark: #1a0b1f;
+    --bg-color-center: #3e2042;
+}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Birthday Intro Scene</title>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
 
-    <!-- PWA & FULLSCREEN META TAGS -->
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#1a0b1f">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BirthdayApp">
-    <link rel="apple-touch-icon" href="assets/image/icon-192.png">
-    <meta name="color-scheme" content="dark">
+html,
+body {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+    background-color: var(--bg-color-dark) !important;
+    font-family: 'Playfair Display', serif;
+}
 
-    <!-- IMPORT FONTS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500;600&display=swap"
-        rel="stylesheet">
+/* Chuẩn hóa gradient không bị lệch sắc màu trên iPad WebKit */
+#scene-intro,
+#scene-cake,
+#scene-player {
+    background: #1a0b1f;
+    background: radial-gradient(circle at center in srgb, var(--bg-color-center) 0%, var(--bg-color-dark) 100%);
+}
 
-    <!-- IMPORT CSS -->
-    <link rel="stylesheet" href="style.css">
-</head>
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 
-<body>
+/* 2. Chặn hoàn toàn việc trích xuất / kéo thả / gọi menu cho toàn bộ thẻ img */
+img {
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
 
-    <!-- SURPRISE OVERLAY -->
-    <div id="scene-surprise">
-        <p class="surprise-title">Có một bất ngờ dành cho bạn, muốn xem không?</p>
-        <div class="surprise-btn-group">
-            <button id="surprise-btn-yes" class="surprise-btn">yes!!</button>
-            <button id="surprise-btn-no" class="surprise-btn">no thanks</button>
-        </div>
-    </div>
+/* ==========================================
+   SURPRISE OVERLAY
+   ========================================== */
+#scene-surprise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: #000000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    z-index: 99999;
+    padding: calc(20px + var(--sat)) 20px calc(20px + var(--sab)) 20px;
+    text-align: center;
+    transition: opacity 0.8s ease;
+}
 
-    <!-- SCENE 1: INTRO -->
-    <div id="scene-intro">
-        <div class="particles" id="particles"></div>
-        <h1 class="happy-birthday" id="hb-text">Happy Birthday</h1>
+.surprise-title {
+    font-family: 'FB Typewriter', 'Courier New', Courier, monospace;
+    font-size: clamp(1.3rem, 3.5vmin, 2rem);
+    color: #ffffff;
+    font-weight: bold;
+    line-height: 1.4;
+}
 
-        <div class="center-group">
-            <div class="arrow" id="arrow">→</div>
-            <div class="center-glow" id="glow"></div>
+.surprise-btn-group {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+}
 
-            <div class="numbers-window">
-                <div class="numbers-wrapper" id="numbers-wrapper"></div>
-            </div>
+.surprise-btn {
+    font-family: 'FB Typewriter', 'Courier New', Courier, monospace;
+    font-size: clamp(0.9rem, 2.5vmin, 1.2rem);
+    font-weight: bold;
+    color: #ffffff;
+    background: transparent;
+    border: 2px solid #ffffff;
+    padding: 10px 28px;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
-            <div class="month-text" id="month">Tháng 6</div>
-        </div>
-    </div>
+.surprise-btn:hover,
+.surprise-btn:active {
+    background-color: #ffffff;
+    color: #000000;
+    transform: scale(1.05);
+}
 
-    <!-- SCENE 2: CAKE & CANDLE -->
-    <div id="scene-cake">
-        <div class="particles bright"></div>
-        <div class="warm-glow" id="warm-glow"></div>
+/* ==========================================
+   SCENE 1: INTRO CONTAINER
+   ========================================== */
+#scene-intro {
+    position: relative;
+    width: 100vw;
+    height: 100dvh;
+    background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    transition: opacity 1s ease-in-out;
+    overflow: hidden;
+}
 
-        <img src="assets/image/Bunting_Garland.svg" class="bunting-garland" id="bunting" alt="Bunting Garland">
+.particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 20% 30%, #fff 100%, transparent),
+        radial-gradient(2px 2px at 80% 40%, #f5e2b4 100%, transparent),
+        radial-gradient(1px 1px at 60% 80%, #fff 100%, transparent),
+        radial-gradient(1.5px 1.5px at 30% 70%, #f5e2b4 100%, transparent);
+    opacity: 0.35;
+    transition: opacity 1.2s ease-out, filter 1.2s ease-out;
+}
 
-        <div class="cake-container" id="cake-container">
-            <img src="assets/image/cake_birthday.svg" class="cake-img" alt="Birthday Cake">
-            <div class="candle-flame" id="candle-flame"></div>
-            <div class="smoke" id="smoke"></div>
-            <svg class="blow-progress-ring" viewBox="0 0 64 64">
-                <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
-                <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
-            </svg>
-        </div>
+.particles.bright {
+    opacity: 0.95;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9)) brightness(1.5);
+}
 
-        <img src="assets/image/Matchstick.svg" class="matchstick" id="matchstick" alt="Matchstick">
+.happy-birthday {
+    position: absolute;
+    top: calc(12% + var(--sat));
+    font-family: 'Dancing Script', cursive;
+    font-weight: 700;
+    font-size: clamp(2.5rem, 8vmin, 5rem);
+    color: var(--text-white);
+    text-shadow: 0 0 8px #fff, 0 0 15px #ffb3ff;
+    opacity: 0;
+    transform: translateY(20px);
+    z-index: 10;
+    transition: all 1s ease-out;
+    text-align: center;
+    width: 100%;
+    padding: 0 1rem;
+}
 
-        <div class="subtitle-container">
-            <p class="subtitle-text" id="subtitle-text"></p>
-            <p class="instruction-text" id="instruction-text">👆 Nhấn giữ hoặc vuốt lên ngọn nến để thổi nến</p>
-        </div>
-    </div>
+.center-group {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    height: var(--number-height);
+}
 
-    <!-- SCENE 3: WISHES -->
-    <div id="scene-wishes" class="scene">
-        <div id="fireflies-container"></div>
-        <div class="wishes-header-small">MỘT ĐIỀU ƯỚC</div>
-        <h2 class="wishes-title">Bây giờ... chọn một điều ước cho ngày sinh nhật của cậu.</h2>
-        <div class="wishes-grid">
-            <div class="wish-card" data-wish="happiness">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="vietlott">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="health">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="peace">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-        </div>
-    </div>
+.center-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: clamp(180px, 35vmin, 280px);
+    height: clamp(180px, 35vmin, 280px);
+    background: radial-gradient(circle, rgba(255, 218, 140, 0.45) 0%, rgba(255, 218, 140, 0) 70%);
+    border-radius: 50%;
+    opacity: 0;
+    z-index: -1;
+    transition: opacity 0.8s ease-in;
+    pointer-events: none;
+}
 
-    <!-- SCENE 4: MUSIC PLAYER -->
-    <div id="scene-player" class="scene">
-        <div class="fireflies-container"></div>
-        <audio id="bg-audio" preload="auto"></audio>
-        <div class="player-wrapper">
-            <div class="turntable-box">
-                <img src="assets/image/disc.svg" alt="Đế máy phát" class="turntable-bg">
-                <img id="vinyl-disc" src="" alt="Đĩa nhạc" class="vinyl-record">
-                <div class="turntable-center-pin"></div>
-                <div class="tonearm"></div>
-            </div>
-            <button id="start-listen-btn" class="listen-btn">▶ Bắt đầu lắng nghe</button>
-        </div>
+.arrow {
+    position: absolute;
+    left: clamp(-40px, -7vmin, -60px);
+    color: var(--text-gold);
+    font-size: clamp(1.2rem, 3.5vmin, 2rem);
+    opacity: 0;
+    transition: opacity 0.5s ease-in;
+    transform: translateY(-2px);
+}
 
-        <div class="end-buttons-container" id="end-buttons-container">
-            <button class="custom-action-btn" id="replay-btn">↺ Nghe lại</button>
-            <button class="custom-action-btn" id="send-sky-btn">⭐ Gửi lời chúc lên bầu trời</button>
-        </div>
-    </div>
+.numbers-window {
+    height: calc(var(--number-height) * 5);
+    overflow: hidden;
+    position: relative;
+    display: block;
+    -webkit-mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+    mask-image: linear-gradient(to bottom, transparent, black 30%, black 70%, transparent);
+}
 
-    <!-- OVERLAYS DÙNG CHUNG -->
-    <div class="dark-overlay" id="dark-overlay"></div>
-    <div class="final-wish" id="final-wish"></div>
+.numbers-wrapper {
+    display: flex;
+    flex-direction: column;
+    will-change: transform;
+}
 
-    <!-- JAVASCRIPT -->
-    <script src="script.js"></script>
-</body>
+.number-item {
+    height: var(--number-height);
+    line-height: var(--number-height);
+    font-size: clamp(2.5rem, 7vmin, 4.2rem);
+    color: rgba(255, 255, 255, 0.65);
+    text-align: center;
+    transition: all 0.5s ease;
+    font-weight: 600;
+    font-family: 'Playfair Display', serif;
+    width: clamp(70px, 18vmin, 120px);
+}
 
-</html>
+.number-item.active {
+    color: #fff;
+    transform: scale(1.5);
+    text-shadow: 0 0 20px rgba(255, 218, 140, 0.8);
+    z-index: 10;
+}
+
+.month-text {
+    position: absolute;
+    left: calc(100% + 8px);
+    font-size: clamp(1.2rem, 3.5vmin, 2rem);
+    color: #ffffff;
+    font-weight: bold;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.8s ease-out;
+    font-family: 'FB Typewriter', 'Courier New', Courier, monospace;
+    white-space: nowrap;
+}
+
+.show-element {
+    opacity: 1 !important;
+    transform: translate(0, 0) !important;
+}
+
+/* ==========================================
+   SCENE 2: CAKE & CANDLE SCENE
+   ========================================== */
+#scene-cake {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease-in-out;
+    z-index: 1;
+    overflow: hidden;
+    touch-action: none;
+}
+
+#scene-cake.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.warm-glow {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: clamp(250px, 55vmin, 450px);
+    height: clamp(250px, 55vmin, 450px);
+    background: radial-gradient(circle, rgba(255, 183, 77, 0.3) 0%, rgba(255, 183, 77, 0) 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.warm-glow.lit {
+    opacity: 1;
+}
+
+.bunting-garland {
+    position: absolute;
+    top: calc(10px + var(--sat));
+    width: min(90%, 550px);
+    z-index: 3;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 1s ease-out;
+}
+
+.cake-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    width: clamp(200px, 45vmin, 350px);
+    max-width: 85vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 4;
+    cursor: pointer;
+    touch-action: none;
+    animation: cakeFloat 3.5s infinite ease-in-out;
+}
+
+/* Vùng cảm ứng ẩn mở rộng lên phía trên bánh và ngọn nến */
+.cake-container::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    left: -40px;
+    right: -40px;
+    bottom: -20px;
+    z-index: 20;
+    background: transparent;
+}
+
+@keyframes cakeFloat {
+
+    0%,
+    100% {
+        transform: translate3d(-50%, -50%, 0);
+    }
+
+    50% {
+        transform: translate3d(-50%, -54%, 0);
+    }
+}
+
+.blow-progress-ring {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: clamp(65px, 14vmin, 80px);
+    height: clamp(65px, 14vmin, 80px);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    z-index: 25;
+}
+
+.blow-progress-ring.active {
+    opacity: 1 !important;
+}
+
+.ring-bg {
+    stroke: rgba(255, 255, 255, 0.2);
+    stroke-width: 3;
+}
+
+.ring-fill {
+    stroke: #ffeb3b;
+    stroke-width: 3;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: center;
+    transition: stroke-dashoffset 0.1s linear;
+}
+
+.cake-img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
+    transition: filter 0.3s ease;
+    pointer-events: none;
+}
+
+.candle-flame {
+    position: absolute;
+    top: 7%;
+    left: 50%;
+    transform: translate(-50%, -100%) scale(0.8);
+    width: clamp(14px, 3.5vmin, 20px);
+    height: clamp(22px, 5.5vmin, 32px);
+    background: radial-gradient(ellipse at bottom, #ffffff 0%, #ffee58 35%, #ff9800 70%, transparent 100%);
+    border-radius: 50% 50% 35% 35%;
+    opacity: 0;
+    filter: drop-shadow(0 0 12px #ff5722) drop-shadow(0 0 20px #ffee58);
+    transition: opacity 0.3s ease, transform 0.1s linear, filter 0.2s ease;
+    pointer-events: none;
+    will-change: transform, opacity, filter;
+}
+
+.candle-flame.lit {
+    opacity: 1;
+    animation: flameFlicker 0.15s infinite alternate ease-in-out;
+}
+
+@keyframes flameFlicker {
+    0% {
+        transform: translate(-50%, -100%) scale(1) rotate(-1deg);
+    }
+
+    100% {
+        transform: translate(-48%, -102%) scale(1.08) rotate(1.5deg);
+    }
+}
+
+.smoke {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    width: 14px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    filter: blur(3px);
+    transition: opacity 0.3s ease;
+}
+
+.smoke.active {
+    animation: smokeRise 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+@keyframes smokeRise {
+    0% {
+        opacity: 0.8;
+        transform: translate(-50%, -100%) scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -250%) scale(3.5);
+    }
+}
+
+.matchstick {
+    position: absolute;
+    top: 30%;
+    right: -120px;
+    width: clamp(50px, 12vmin, 80px);
+    transform: rotate(-35deg);
+    opacity: 0;
+    z-index: 10;
+    transition: all 1.2s cubic-bezier(0.25, 1, 0.5, 1);
+    pointer-events: none;
+    filter: drop-shadow(0 0 8px #ff9800);
+}
+
+.matchstick.approach {
+    top: calc(48% - clamp(100px, 20vmin, 160px));
+    right: calc(50% - clamp(15px, 4vmin, 35px));
+    opacity: 1;
+}
+
+.subtitle-container {
+    position: absolute;
+    bottom: calc(20px + var(--sab));
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 650px;
+    text-align: center;
+    z-index: 5;
+}
+
+.subtitle-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(1.2rem, 3.8vmin, 2rem);
+    color: var(--text-white);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+    min-height: 1.8em;
+}
+
+.subtitle-text.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.instruction-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 400;
+    font-size: clamp(0.85rem, 2.5vmin, 1.2rem);
+    color: rgba(255, 255, 255, 0.75);
+    margin-top: 6px;
+    margin-bottom: 0.5em;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+}
+
+.instruction-text.show {
+    opacity: 1;
+    animation: pulseText 2s infinite ease-in-out;
+}
+
+@keyframes pulseText {
+
+    0%,
+    100% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.02);
+    }
+}
+
+.dark-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: #000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.5s ease-in-out;
+    z-index: 99;
+}
+
+.dark-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.final-wish {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: 90%;
+    max-width: 800px;
+    letter-spacing: 1.5px;
+    text-align: center;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.5rem, 4.5vmin, 2.8rem);
+    font-weight: 600;
+    color: var(--text-white);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+    opacity: 0;
+    transition: opacity 1.2s ease, transform 1.2s ease;
+    z-index: 100;
+    pointer-events: none;
+}
+
+.final-wish.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* ==========================================
+   SCENE 3: WISHES
+   ========================================== */
+#scene-wishes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+    z-index: 101;
+    overflow: hidden;
+    padding: calc(10px + var(--sat)) 1rem calc(10px + var(--sab)) 1rem;
+    touch-action: none;
+}
+
+#scene-wishes.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.wishes-header-small,
+.wishes-title,
+.wishes-grid {
+    position: relative;
+    z-index: 2;
+}
+
+.wishes-header-small {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.9rem, 2.5vmin, 1.2rem);
+    letter-spacing: 3px;
+    color: #d4af37;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    text-align: center;
+}
+
+.wishes-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.3rem, 3.8vmin, 2.3rem);
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 500;
+    max-width: 90%;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+}
+
+.wishes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(10px, 3vmin, 20px);
+    max-width: clamp(260px, 55vmin, 420px);
+    width: 90%;
+}
+
+.wish-card {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), filter 0.3s ease;
+}
+
+.wish-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+    transition: filter 0.3s ease;
+}
+
+.wish-card:hover,
+.wish-card:active {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255, 235, 59, 0.9));
+}
+
+#fireflies-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.firefly {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    background-color: #ffeb3b;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffeb3b, 0 0 20px #ffc107, 0 0 30px #ff9800;
+    opacity: 0;
+    animation: fireflyFloat 5s infinite ease-in-out;
+}
+
+@keyframes fireflyFloat {
+    0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 0;
+    }
+
+    30% {
+        opacity: 0.9;
+    }
+
+    50% {
+        transform: translate(var(--moveX), var(--moveY)) scale(1.2);
+        opacity: 1;
+    }
+
+    70% {
+        opacity: 0.7;
+    }
+
+    100% {
+        transform: translate(var(--moveX2), var(--moveY2)) scale(0.3);
+        opacity: 0;
+    }
+}
+
+/* ==========================================
+   SCENE 4: MUSIC PLAYER
+   ========================================== */
+#scene-player {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background: radial-gradient(circle at center, #3e2042 0%, #1a0b1f 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease-in-out;
+    z-index: 102;
+    overflow: hidden;
+    padding: calc(10px + var(--sat)) 1rem calc(10px + var(--sab)) 1rem;
+}
+
+#scene-player.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.player-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(16px, 3.5vmin, 30px);
+    width: 100%;
+    max-width: 550px;
+}
+
+.turntable-box {
+    position: relative;
+    width: clamp(230px, 55vmin, 450px);
+    height: clamp(230px, 55vmin, 450px);
+    background: #111;
+    border-radius: 30%;
+    box-shadow: 0 0 30px rgba(255, 235, 59, 0.2), inset 0 0 15px rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #222;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 1s ease, transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.turntable-box.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.turntable-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 30%;
+    z-index: 1;
+}
+
+.vinyl-record {
+    width: 90%;
+    height: 90%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
+    opacity: 0;
+    transform: scale(0.7) rotate(-20deg);
+    transition: opacity 1s ease, transform 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 2;
+}
+
+.vinyl-record.show {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+}
+
+.turntable-center-pin {
+    position: absolute;
+    width: clamp(10px, 2vmin, 16px);
+    height: clamp(10px, 2vmin, 16px);
+    background: #d4af37;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    z-index: 2;
+}
+
+.tonearm {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+    width: clamp(90px, 22vmin, 160px);
+    height: clamp(100px, 25vmin, 180px);
+    background-image: linear-gradient(to right, #ccc, #888);
+    clip-path: polygon(70% 0%, 100% 0%, 100% 15%, 40% 100%, 20% 90%, 60% 15%);
+    transform-origin: top right;
+    opacity: 0;
+    transform: rotate(35deg) scale(0.8);
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.8s ease;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+    z-index: 3;
+}
+
+.tonearm.active {
+    opacity: 1;
+    transform: rotate(15deg) scale(1);
+}
+
+@keyframes vinylSpin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.vinyl-record.spinning {
+    animation: vinylSpin 10s linear infinite;
+}
+
+.listen-btn {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.1rem, 3.2vmin, 1.6rem);
+    font-weight: 600;
+    color: #111;
+    background: linear-gradient(135deg, #f5e2b4 0%, #d4af37 100%);
+    border: none;
+    padding: clamp(8px, 1.8vmin, 14px) clamp(20px, 4.5vmin, 32px);
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+    letter-spacing: 1px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 1s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    white-space: nowrap;
+}
+
+.listen-btn.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.end-buttons-container {
+    position: absolute;
+    bottom: calc(6% + var(--sab));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+    z-index: 60;
+    width: 100%;
+    padding: 0 20px;
+    flex-wrap: wrap;
+}
+
+.custom-action-btn {
+    padding: clamp(8px, 1.8vmin, 12px) clamp(14px, 3.5vmin, 20px);
+    font-size: clamp(0.85rem, 2.5vmin, 1.1rem);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    border-radius: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+/* --- SKY SCENE --- */
+#sky-scene {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background: #0a0a1a;
+    z-index: 10000;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(30px, 8vmin, 100px);
+    opacity: 0;
+    transition: opacity 1.5s ease;
+    overflow: hidden;
+    padding: calc(20px + var(--sat)) 1rem calc(20px + var(--sab)) 1rem;
+}
+
+.sky-bg-stars,
+.sky-fireflies-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.four-pointed-star-svg {
+    filter: drop-shadow(0 0 12px #fff) drop-shadow(0 0 25px #ffeb3b);
+    animation: starShine 2s infinite ease-in-out;
+}
+
+@keyframes starShine {
+
+    0%,
+    100% {
+        transform: scale(0.9) rotate(0deg);
+        filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ffeb3b);
+    }
+
+    50% {
+        transform: scale(1.2) rotate(15deg);
+        filter: drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px #fffa65);
+    }
+}
+
+.star-glow-effect {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.7) 0%, rgba(255, 235, 59, 0.2) 40%, transparent 70%);
+    border-radius: 50%;
+    animation: glowPulse 2s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.25);
+        opacity: 0.9;
+    }
+}
+
+.sky-tiny-star {
+    position: absolute;
+    background-color: #ffffff;
+    border-radius: 50%;
+    animation: starTwinkle infinite ease-in-out alternate;
+}
+
+@keyframes starTwinkle {
+    0% {
+        opacity: 0.2;
+        transform: scale(0.7);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+}
+
+.shooting-meteor {
+    position: absolute;
+    width: 200px;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+    transform: rotate(-45deg);
+    pointer-events: none;
+    opacity: 0.9;
+    animation: meteorFall 1.2s linear forwards;
+    z-index: 1;
+}
+
+@keyframes meteorFall {
+    0% {
+        transform: translate(0, 0) rotate(-45deg) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-350px, 350px) rotate(-45deg) scale(1.2);
+        opacity: 0;
+    }
+}
+
+.birthday-wish-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(1.5rem, 4.5vmin, 2.8rem);
+    font-weight: bold;
+    font-family: 'Cormorant Garamond', serif;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9), 0 0 30px rgba(255, 105, 180, 0.8);
+    opacity: 0;
+    animation: fadeInText 1.5s ease 0.6s forwards;
+    z-index: 10;
+    pointer-events: none;
+    width: 90%;
+    max-width: 900px;
+    line-height: 1.4;
+}
+
+@keyframes fadeInText {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
