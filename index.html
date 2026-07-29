@@ -17,6 +17,8 @@
     <link rel="apple-touch-icon" href="assets/image/icon-192.png">
 
     <!-- IMPORT FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -27,7 +29,7 @@
 
 <body>
 
-    <!-- SURPRISE OVERLAY (Màn hình hỏi trước Scene 1) -->
+    <!-- SURPRISE OVERLAY -->
     <div id="scene-surprise">
         <p class="surprise-title">Có một bất ngờ dành cho bạn, muốn xem không?</p>
         <div class="surprise-btn-group">
@@ -36,7 +38,7 @@
         </div>
     </div>
 
-    <!-- SCENE 1: Màn hình Intro chọn ngày -->
+    <!-- SCENE 1: INTRO -->
     <div id="scene-intro">
         <div class="particles" id="particles"></div>
         <h1 class="happy-birthday" id="hb-text">Happy Birthday</h1>
@@ -53,7 +55,7 @@
         </div>
     </div>
 
-    <!-- SCENE 2: Màn hình Bánh sinh nhật & Thắp nến -->
+    <!-- SCENE 2: CAKE & CANDLE -->
     <div id="scene-cake">
         <div class="particles bright"></div>
         <div class="warm-glow" id="warm-glow"></div>
@@ -64,6 +66,10 @@
             <img src="assets/image/cake_birthday.svg" class="cake-img" alt="Birthday Cake">
             <div class="candle-flame" id="candle-flame"></div>
             <div class="smoke" id="smoke"></div>
+            <svg class="blow-progress-ring" viewBox="0 0 64 64">
+                <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
+                <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
+            </svg>
         </div>
 
         <img src="assets/image/Matchstick.svg" class="matchstick" id="matchstick" alt="Matchstick">
@@ -72,16 +78,9 @@
             <p class="subtitle-text" id="subtitle-text"></p>
             <p class="instruction-text" id="instruction-text">👆 Nhấn giữ hoặc vuốt lên ngọn nến để thổi nến</p>
         </div>
-
-        <div id="candle-container">
-            <svg class="blow-progress-ring" viewBox="0 0 64 64">
-                <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
-                <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
-            </svg>
-        </div>
     </div>
 
-    <!-- SCENE 3: CHỌN ĐIỀU ƯỚC -->
+    <!-- SCENE 3: WISHES -->
     <div id="scene-wishes" class="scene">
         <div id="fireflies-container"></div>
         <div class="wishes-header-small">MỘT ĐIỀU ƯỚC</div>
@@ -102,7 +101,7 @@
         </div>
     </div>
 
-    <!-- SCENE 4: MÁY PHÁT NHẠC -->
+    <!-- SCENE 4: MUSIC PLAYER -->
     <div id="scene-player" class="scene">
         <div class="fireflies-container"></div>
         <audio id="bg-audio" preload="auto"></audio>
@@ -115,7 +114,16 @@
             </div>
             <button id="start-listen-btn" class="listen-btn">▶ Bắt đầu lắng nghe</button>
         </div>
+        
+        <div class="end-buttons-container" id="end-buttons-container">
+            <button class="custom-action-btn" id="replay-btn">↺ Nghe lại</button>
+            <button class="custom-action-btn" id="send-sky-btn">⭐ Gửi lời chúc lên bầu trời</button>
+        </div>
     </div>
+
+    <!-- OVERLAYS DÙNG CHUNG -->
+    <div class="dark-overlay" id="dark-overlay"></div>
+    <div class="final-wish" id="final-wish"></div>
 
     <!-- JAVASCRIPT -->
     <script src="script.js"></script>
