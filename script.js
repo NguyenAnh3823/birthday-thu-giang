@@ -1,20 +1,46 @@
 // ==========================================
-// 0. CẤU HÌNH ÂM THANH PIANO & NHẠC NỀN MP3
+// PWA SERVICE WORKER & FULLSCREEN HELPER
 // ==========================================
-let pianoAudioCtx = null;
-let isPianoPlaying = false;
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('Service Worker đã đăng ký thành công:', reg.scope))
+            .catch(err => console.log('Service Worker đăng ký thất bại:', err));
+    });
+}
 
-function playPianoHappyBirthday() {
+// Hàm bật chế độ Web App Fullscreen tương thích đa trình duyệt
+function requestAppFullScreen() {
+    const docEl = document.documentElement;
+    if (docEl.requestFullscreen) {
+        docEl.requestFullscreen().catch(() => { });
+    } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS */
+        docEl.webkitRequestFullscreen();
+    } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+        docEl.msRequestFullscreen();
+    }
+}
+
+// ==========================================
+// 0. CẤU HÌNH ÂM THANH ĐÀN ĐÁ & NHẠC NỀN MP3
+// ==========================================
+let danDaAudioCtx = null;
+let isDanDaPlaying = false;
+
+function playDanDaHappyBirthday() {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
-        if (!pianoAudioCtx) pianoAudioCtx = new AudioContext();
-        if (pianoAudioCtx.state === 'suspended') pianoAudioCtx.resume();
+        if (!danDaAudioCtx) danDaAudioCtx = new AudioContext();
+        if (danDaAudioCtx.state === 'suspended') danDaAudioCtx.resume();
 
-        if (isPianoPlaying) return;
-        isPianoPlaying = true;
+        if (isDanDaPlaying) return;
+        isDanDaPlaying = true;
 
-        const notes = [
+        const PITCH_SCALE = 1.35;
+        const TEMPO_SCALE = 0.78;
+
+        const rawNotes = [
             { f: 523.25, d: 0.5 }, { f: 523.25, d: 0.25 },
             { f: 587.33, d: 0.7 }, { f: 523.25, d: 0.7 },
             { f: 698.46, d: 0.7 }, { f: 659.25, d: 1.3 },
@@ -30,78 +56,66 @@ function playPianoHappyBirthday() {
             { f: 783.99, d: 0.7 }, { f: 698.46, d: 1.8 }
         ];
 
-        let currTime = pianoAudioCtx.currentTime;
-        let totalDuration = 0;
+        let currTime = danDaAudioCtx.currentTime;
 
-        notes.forEach(note => {
-            const osc = pianoAudioCtx.createOscillator();
-            const gain = pianoAudioCtx.createGain();
-            const filter = pianoAudioCtx.createBiquadFilter();
+        rawNotes.forEach(rawNote => {
+            const freq = rawNote.f * PITCH_SCALE;
+            const duration = rawNote.d * TEMPO_SCALE;
 
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(note.f, currTime);
+            const osc1 = danDaAudioCtx.createOscillator();
+            const gain1 = danDaAudioCtx.createGain();
 
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(4000, currTime);
+            const osc2 = danDaAudioCtx.createOscillator();
+            const gain2 = danDaAudioCtx.createGain();
 
-            gain.gain.setValueAtTime(0, currTime);
-            gain.gain.linearRampToValueAtTime(0.2, currTime + 0.08);
-            gain.gain.exponentialRampToValueAtTime(0.001, currTime + note.d);
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(freq, currTime);
 
-            osc.connect(filter);
-            filter.connect(gain);
-            gain.connect(pianoAudioCtx.destination);
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(freq * 3.0, currTime);
 
-            osc.start(currTime);
-            osc.stop(currTime + note.d);
+            gain1.gain.setValueAtTime(0, currTime);
+            gain1.gain.linearRampToValueAtTime(0.3, currTime + 0.002);
+            gain1.gain.exponentialRampToValueAtTime(0.0001, currTime + duration * 0.95);
 
-            currTime += note.d + 0.08;
-            totalDuration = currTime - pianoAudioCtx.currentTime;
+            gain2.gain.setValueAtTime(0, currTime);
+            gain2.gain.linearRampToValueAtTime(0.2, currTime + 0.001);
+            gain2.gain.exponentialRampToValueAtTime(0.0001, currTime + 0.08);
+
+            osc1.connect(gain1);
+            osc2.connect(gain2);
+            gain1.connect(danDaAudioCtx.destination);
+            gain2.connect(danDaAudioCtx.destination);
+
+            osc1.start(currTime);
+            osc1.stop(currTime + duration * 0.95);
+
+            osc2.start(currTime);
+            osc2.stop(currTime + 0.08);
+
+            currTime += duration + 0.035;
         });
 
-        if (isPianoPlaying) {
+        const totalDuration = currTime - danDaAudioCtx.currentTime;
+
+        if (isDanDaPlaying) {
             setTimeout(() => {
-                if (isPianoPlaying) playPianoHappyBirthday();
-            }, totalDuration * 1000 + 1500);
+                if (isDanDaPlaying) playDanDaHappyBirthday();
+            }, totalDuration * 1000 + 1000);
         }
     } catch (e) { }
 }
 
-function stopPianoHappyBirthday() {
-    isPianoPlaying = false;
+function stopDanDaHappyBirthday() {
+    isDanDaPlaying = false;
 }
 
 const hbBgm = new Audio('assets/audio/happy_birthday.mp3');
 hbBgm.loop = true;
 hbBgm.volume = 0.6;
 
-// Tự động gỡ bỏ chính sách chặn Autoplay âm thanh trên iOS ngay cú chạm màn hình đầu tiên
-function unlockAudioOnFirstTouch() {
-    const unlock = () => {
-        if (pianoAudioCtx && pianoAudioCtx.state === 'suspended') {
-            pianoAudioCtx.resume();
-        }
-        if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
-            sharedAudioCtx.resume();
-        }
-        
-        if (hbBgm) {
-            hbBgm.play().then(() => {
-                hbBgm.pause();
-                hbBgm.currentTime = 0;
-            }).catch(() => {});
-        }
-
-        document.removeEventListener('touchstart', unlock);
-        document.removeEventListener('click', unlock);
-    };
-
-    document.addEventListener('touchstart', unlock, { once: true });
-    document.addEventListener('click', unlock, { once: true });
-}
-
 // ==========================================
-// 1. CẤU HÌNH BIẾN CHÍNH (SCENE 1) - RESPONSIVE SYNC
+// 1. CẤU HÌNH BIẾN CHÍNH (SCENE 1)
 // ==========================================
 const targetDate = 12;
 const wrapper = document.getElementById('numbers-wrapper');
@@ -110,7 +124,7 @@ let html = '';
 for (let i = 1; i <= 31; i++) {
     html += `<div class="number-item" id="num-${i}">${i}</div>`;
 }
-wrapper.innerHTML = html;
+if (wrapper) wrapper.innerHTML = html;
 
 function getNumberHeight() {
     const sampleItem = document.querySelector('.number-item');
@@ -120,27 +134,32 @@ function getNumberHeight() {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // ==========================================
-// 2. CÁC HÀM ÂM THANH (WEB AUDIO API)
+// 2. CÁC HÀM ÂM THANH HIỆU ỨNG (NÂNG CẤP)
 // ==========================================
-function playTickSound() {
+
+function playTickSound(currentIndex = 1) {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
         const ctx = new AudioContext();
+
+        const dist = Math.abs(targetDate - currentIndex);
+        const baseFreq = 1200 - Math.min(dist, 16) * 50;
+
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(700, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.04);
+        osc.frequency.setValueAtTime(baseFreq, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.5, ctx.currentTime + 0.035);
 
-        gain.gain.setValueAtTime(0.12, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.18, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
 
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.04);
+        osc.stop(ctx.currentTime + 0.035);
     } catch (e) { }
 }
 
@@ -150,20 +169,50 @@ function playTargetSelectedSound() {
         if (!AudioContext) return;
         const ctx = new AudioContext();
         const now = ctx.currentTime;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
 
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(523.25, now);
-        osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.6);
+        const oscSlide = ctx.createOscillator();
+        const gainSlide = ctx.createGain();
+        oscSlide.type = 'sawtooth';
+        oscSlide.frequency.setValueAtTime(350, now);
+        oscSlide.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
 
-        gain.gain.setValueAtTime(0.25, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+        gainSlide.gain.setValueAtTime(0.12, now);
+        gainSlide.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.7);
+        oscSlide.connect(gainSlide);
+        gainSlide.connect(ctx.destination);
+        oscSlide.start(now);
+        oscSlide.stop(now + 0.15);
+
+        const lockTime = now + 0.15;
+
+        const oscThump = ctx.createOscillator();
+        const gainThump = ctx.createGain();
+        oscThump.type = 'triangle';
+        oscThump.frequency.setValueAtTime(180, lockTime);
+        oscThump.frequency.exponentialRampToValueAtTime(30, lockTime + 0.12);
+
+        gainThump.gain.setValueAtTime(0.35, lockTime);
+        gainThump.gain.exponentialRampToValueAtTime(0.001, lockTime + 0.12);
+
+        const oscClick = ctx.createOscillator();
+        const gainClick = ctx.createGain();
+        oscClick.type = 'sine';
+        oscClick.frequency.setValueAtTime(1500, lockTime);
+        oscClick.frequency.exponentialRampToValueAtTime(200, lockTime + 0.025);
+
+        gainClick.gain.setValueAtTime(0.25, lockTime);
+        gainClick.gain.exponentialRampToValueAtTime(0.001, lockTime + 0.025);
+
+        oscThump.connect(gainThump);
+        gainThump.connect(ctx.destination);
+        oscClick.connect(gainClick);
+        gainClick.connect(ctx.destination);
+
+        oscThump.start(lockTime);
+        oscThump.stop(lockTime + 0.12);
+        oscClick.start(lockTime);
+        oscClick.stop(lockTime + 0.025);
     } catch (e) { }
 }
 
@@ -171,33 +220,110 @@ function playLightCandleSound() {
     try {
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         if (!AudioContext) return;
-        const duration = 0.2;
         const ctx = new AudioContext();
+        const now = ctx.currentTime;
+
+        const oscSpark = ctx.createOscillator();
+        const gainSpark = ctx.createGain();
+        oscSpark.type = 'triangle';
+        oscSpark.frequency.setValueAtTime(3500, now);
+        oscSpark.frequency.exponentialRampToValueAtTime(900, now + 0.02);
+
+        gainSpark.gain.setValueAtTime(0.35, now);
+        gainSpark.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        oscSpark.connect(gainSpark);
+        gainSpark.connect(ctx.destination);
+        oscSpark.start(now);
+        oscSpark.stop(now + 0.02);
+
+        const duration = 0.4;
         const bufferSize = ctx.sampleRate * duration;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
-
         for (let i = 0; i < bufferSize; i++) {
             data[i] = Math.random() * 2 - 1;
         }
 
         const noise = ctx.createBufferSource();
         noise.buffer = buffer;
+
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(1200, ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(3500, ctx.currentTime + duration);
-        filter.Q.value = 4;
+        filter.frequency.setValueAtTime(2000, now);
+        filter.frequency.exponentialRampToValueAtTime(700, now + duration);
+        filter.Q.value = 3;
 
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        const gainNoise = ctx.createGain();
+        gainNoise.gain.setValueAtTime(0.01, now);
+        gainNoise.gain.linearRampToValueAtTime(0.22, now + 0.03);
+        gainNoise.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
         noise.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-        noise.start();
-        noise.stop(ctx.currentTime + duration);
+        filter.connect(gainNoise);
+        gainNoise.connect(ctx.destination);
+
+        noise.start(now);
+        noise.stop(now + duration);
+    } catch (e) { }
+}
+
+function playWishSuccessSound() {
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+
+        const duration = 0.55;
+        const bufferSize = ctx.sampleRate * duration;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(300, now);
+        filter.frequency.exponentialRampToValueAtTime(1600, now + 0.22);
+        filter.frequency.exponentialRampToValueAtTime(250, now + duration);
+        filter.Q.value = 2;
+
+        const gainNoise = ctx.createGain();
+        gainNoise.gain.setValueAtTime(0.01, now);
+        gainNoise.gain.linearRampToValueAtTime(0.2, now + 0.18);
+        gainNoise.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        noise.connect(filter);
+        filter.connect(gainNoise);
+        gainNoise.connect(ctx.destination);
+        noise.start(now);
+        noise.stop(now + duration);
+
+        const chimeNotes = [1046.50, 1318.51, 1567.98, 2093.00];
+        chimeNotes.forEach((freq, index) => {
+            const chimeTime = now + 0.12 + (index * 0.09);
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, chimeTime);
+
+            gain.gain.setValueAtTime(0, chimeTime);
+            gain.gain.linearRampToValueAtTime(0.12, chimeTime + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, chimeTime + 0.85);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            osc.start(chimeTime);
+            osc.stop(chimeTime + 0.85);
+        });
     } catch (e) { }
 }
 
@@ -218,7 +344,6 @@ function playBlowSound() {
             data[i] = Math.random() * 2 - 1;
         }
 
-        // Đã sửa tất cả các biến ctx thành sharedAudioCtx
         const noise = sharedAudioCtx.createBufferSource();
         noise.buffer = buffer;
         const filter = sharedAudioCtx.createBiquadFilter();
@@ -305,7 +430,7 @@ async function runAnimationFlow() {
                 const currentIndex = Math.round(3 - (currentY / getNumberHeight()));
 
                 if (currentIndex !== lastPlayedIndex && currentIndex >= 1 && currentIndex <= 31) {
-                    playTickSound();
+                    playTickSound(currentIndex);
                     lastPlayedIndex = currentIndex;
                 }
             }
@@ -327,10 +452,11 @@ async function runAnimationFlow() {
     await delay(800);
     document.getElementById('month').classList.add('show-element');
 
-    playPianoHappyBirthday();
-
     await delay(1000);
     document.getElementById('hb-text').classList.add('show-element');
+
+    playDanDaHappyBirthday();
+
     document.getElementById('particles').classList.add('bright');
 
     await delay(1700);
@@ -475,7 +601,7 @@ function launchFireworks() {
 // 5. XỬ LÝ TƯƠNG TÁC THỔI NẾN & ĐOM ĐÓM
 // ==========================================
 function enableBlowCandleInteraction() {
-    playPianoHappyBirthday();
+    playDanDaHappyBirthday();
     const cakeContainer = document.getElementById('cake-container');
     const candleFlame = document.getElementById('candle-flame');
     const warmGlow = document.getElementById('warm-glow');
@@ -539,7 +665,7 @@ function enableBlowCandleInteraction() {
         clearHold();
         clearSwipeReset();
 
-        stopPianoHappyBirthday();
+        stopDanDaHappyBirthday();
 
         if (progressRing) progressRing.classList.remove('active');
 
@@ -548,6 +674,8 @@ function enableBlowCandleInteraction() {
         candleFlame.style.opacity = '0';
         warmGlow.classList.remove('lit');
         smoke.classList.add('active');
+
+        playWishSuccessSound();
 
         subtitleText.classList.remove('show');
         instructionText.classList.remove('show');
@@ -635,7 +763,7 @@ function enableBlowCandleInteraction() {
     };
 
     const startHold = (e) => {
-        playPianoHappyBirthday();
+        playDanDaHappyBirthday();
         if (isBlown) return;
         if (e.touches) {
             touchStartX = e.touches[0].clientX;
@@ -1105,8 +1233,47 @@ function initWishCardsInteraction() {
     }
 }
 
-// Khởi chạy ứng dụng và lắng nghe thao tác chạm
+// ==========================================
+// KÍCH HOẠT MÀN HÌNH BẤT NGỜ & FULLSCREEN
+// ==========================================
 window.addEventListener('DOMContentLoaded', () => {
-    unlockAudioOnFirstTouch();
-    runAnimationFlow();
+    const surpriseScreen = document.getElementById('scene-surprise');
+    const btnYes = document.getElementById('surprise-btn-yes');
+    const btnNo = document.getElementById('surprise-btn-no');
+
+    // Sự kiện khi bấm YES
+    if (btnYes) {
+        btnYes.addEventListener('click', () => {
+            // Kích hoạt chế độ Fullscreen trên thiết bị
+            requestAppFullScreen();
+
+            surpriseScreen.style.opacity = '0';
+            setTimeout(() => {
+                surpriseScreen.style.display = 'none';
+                // Bắt đầu Scene 1
+                runAnimationFlow();
+            }, 800);
+        });
+    }
+
+    // Sự kiện khi bấm NO THANKS
+    if (btnNo) {
+        btnNo.addEventListener('click', () => {
+            window.close();
+            document.body.innerHTML = `
+                <div style="
+                    background: #000; 
+                    color: #fff; 
+                    height: 100vh; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    font-family: 'FB Typewriter', 'Courier New', Courier, monospace;
+                    font-size: 1.2rem;
+                    text-align: center;
+                    padding: 20px;">
+                    Website đã đóng. Chúc bạn một ngày tốt lành!
+                </div>`;
+        });
+    }
 });
