@@ -5,6 +5,9 @@
     --number-height: clamp(50px, 8dvh, 75px);
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
+    color-scheme: dark;
+    --bg-color-dark: #1a0b1f;
+    --bg-color-center: #3e2042;
 }
 
 * {
@@ -19,14 +22,22 @@ body {
     width: 100%;
     height: 100%;
     height: 100dvh;
-    height: -webkit-fill-available;
     overflow: hidden;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
+    -webkit-touch-callout: none;
     overscroll-behavior: none;
-    background-color: #1a0b1f;
+    background-color: var(--bg-color-dark) !important;
     font-family: 'Playfair Display', serif;
+}
+
+/* Chuẩn hóa gradient không bị lệch sắc màu trên iPad WebKit */
+#scene-intro,
+#scene-cake,
+#scene-player {
+    background: #1a0b1f;
+    background: radial-gradient(circle at center in srgb, var(--bg-color-center) 0%, var(--bg-color-dark) 100%);
 }
 
 body {
@@ -92,7 +103,8 @@ img {
     transition: all 0.3s ease;
 }
 
-.surprise-btn:hover, .surprise-btn:active {
+.surprise-btn:hover,
+.surprise-btn:active {
     background-color: #ffffff;
     color: #000000;
     transform: scale(1.05);
@@ -301,9 +313,9 @@ img {
 
 .cake-container {
     position: absolute;
-    top: 48%;
+    top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    transform: translate3d(-50%, -50%, 0);
     width: clamp(200px, 45vmin, 350px);
     max-width: 85vw;
     display: flex;
@@ -315,30 +327,46 @@ img {
     animation: cakeFloat 3.5s infinite ease-in-out;
 }
 
+/* Vùng cảm ứng ẩn mở rộng lên phía trên bánh và ngọn nến */
+.cake-container::before {
+    content: '';
+    position: absolute;
+    top: -120px;
+    left: -40px;
+    right: -40px;
+    bottom: -20px;
+    z-index: 20;
+    background: transparent;
+}
+
 @keyframes cakeFloat {
-    0%, 100% {
-        transform: translate(-50%, -50%);
+
+    0%,
+    100% {
+        transform: translate3d(-50%, -50%, 0);
     }
+
     50% {
-        transform: translate(-50%, -53%);
+        transform: translate3d(-50%, -54%, 0);
     }
 }
 
 .blow-progress-ring {
     position: absolute;
-    top: -5px;
+    top: -15px;
     left: 50%;
     transform: translateX(-50%);
-    width: clamp(55px, 12vmin, 70px);
-    height: clamp(55px, 12vmin, 70px);
+    width: clamp(65px, 14vmin, 80px);
+    height: clamp(65px, 14vmin, 80px);
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.3s ease;
-    z-index: 5;
+    transition: opacity 0.15s ease;
+    z-index: 25;
 }
 
 .blow-progress-ring.active {
-    opacity: 1;
+    opacity: 1 !important;
+    ;
 }
 
 .ring-bg {
@@ -360,7 +388,7 @@ img {
     height: auto;
     filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
     transition: filter 0.3s ease;
-    pointer-events: none; /* Giúp thao tác touch đi thẳng vào .cake-container */
+    pointer-events: none;
 }
 
 .candle-flame {
@@ -374,8 +402,9 @@ img {
     border-radius: 50% 50% 35% 35%;
     opacity: 0;
     filter: drop-shadow(0 0 12px #ff5722) drop-shadow(0 0 20px #ffee58);
-    transition: opacity 0.2s ease, transform 0.1s ease-out;
+    transition: opacity 0.3s ease, transform 0.1s linear, filter 0.2s ease;
     pointer-events: none;
+    will-change: transform, opacity, filter;
 }
 
 .candle-flame.lit {
@@ -387,6 +416,7 @@ img {
     0% {
         transform: translate(-50%, -100%) scale(1) rotate(-1deg);
     }
+
     100% {
         transform: translate(-48%, -102%) scale(1.08) rotate(1.5deg);
     }
@@ -397,17 +427,18 @@ img {
     top: 6%;
     left: 50%;
     transform: translate(-50%, -100%);
-    width: 12px;
-    height: 12px;
-    background: rgba(255, 255, 255, 0.6);
+    width: 14px;
+    height: 14px;
+    background: rgba(255, 255, 255, 0.75);
     border-radius: 50%;
     opacity: 0;
     pointer-events: none;
-    filter: blur(4px);
+    filter: blur(3px);
+    transition: opacity 0.3s ease;
 }
 
 .smoke.active {
-    animation: smokeRise 1.5s ease-out forwards;
+    animation: smokeRise 1.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 @keyframes smokeRise {
@@ -415,6 +446,7 @@ img {
         opacity: 0.8;
         transform: translate(-50%, -100%) scale(1);
     }
+
     100% {
         opacity: 0;
         transform: translate(-50%, -250%) scale(3.5);
@@ -485,10 +517,13 @@ img {
 }
 
 @keyframes pulseText {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 0.6;
         transform: scale(0.98);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.02);
@@ -618,7 +653,8 @@ img {
     transition: filter 0.3s ease;
 }
 
-.wish-card:hover, .wish-card:active {
+.wish-card:hover,
+.wish-card:active {
     transform: scale(1.05);
     filter: drop-shadow(0 0 20px rgba(255, 235, 59, 0.9));
 }
@@ -649,16 +685,20 @@ img {
         transform: translate(0, 0) scale(0.5);
         opacity: 0;
     }
+
     30% {
         opacity: 0.9;
     }
+
     50% {
         transform: translate(var(--moveX), var(--moveY)) scale(1.2);
         opacity: 1;
     }
+
     70% {
         opacity: 0.7;
     }
+
     100% {
         transform: translate(var(--moveX2), var(--moveY2)) scale(0.3);
         opacity: 0;
@@ -782,8 +822,13 @@ img {
 }
 
 @keyframes vinylSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .vinyl-record.spinning {
@@ -868,7 +913,8 @@ img {
     padding: calc(20px + var(--sat)) 1rem calc(20px + var(--sab)) 1rem;
 }
 
-.sky-bg-stars, .sky-fireflies-layer {
+.sky-bg-stars,
+.sky-fireflies-layer {
     position: absolute;
     top: 0;
     left: 0;
@@ -884,10 +930,13 @@ img {
 }
 
 @keyframes starShine {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: scale(0.9) rotate(0deg);
         filter: drop-shadow(0 0 8px #fff) drop-shadow(0 0 15px #ffeb3b);
     }
+
     50% {
         transform: scale(1.2) rotate(15deg);
         filter: drop-shadow(0 0 20px #fff) drop-shadow(0 0 40px #fffa65);
@@ -905,8 +954,17 @@ img {
 }
 
 @keyframes glowPulse {
-    0%, 100% { transform: scale(0.8); opacity: 0.5; }
-    50% { transform: scale(1.25); opacity: 0.9; }
+
+    0%,
+    100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scale(1.25);
+        opacity: 0.9;
+    }
 }
 
 .sky-tiny-star {
@@ -917,8 +975,15 @@ img {
 }
 
 @keyframes starTwinkle {
-    0% { opacity: 0.2; transform: scale(0.7); }
-    100% { opacity: 1; transform: scale(1.3); }
+    0% {
+        opacity: 0.2;
+        transform: scale(0.7);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1.3);
+    }
 }
 
 .shooting-meteor {
@@ -934,8 +999,15 @@ img {
 }
 
 @keyframes meteorFall {
-    0% { transform: translate(0, 0) rotate(-45deg) scale(0.5); opacity: 1; }
-    100% { transform: translate(-350px, 350px) rotate(-45deg) scale(1.2); opacity: 0; }
+    0% {
+        transform: translate(0, 0) rotate(-45deg) scale(0.5);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-350px, 350px) rotate(-45deg) scale(1.2);
+        opacity: 0;
+    }
 }
 
 .birthday-wish-text {
@@ -959,6 +1031,13 @@ img {
 }
 
 @keyframes fadeInText {
-    0% { opacity: 0; transform: translate(-50%, -40%); }
-    100% { opacity: 1; transform: translate(-50%, -50%); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
 }
