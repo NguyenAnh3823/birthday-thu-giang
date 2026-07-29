@@ -1,132 +1,50 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Birthday Intro Scene</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Birthday Cake</title>
 
-    <!-- PWA & FULLSCREEN META TAGS -->
-    <link rel="manifest" href="manifest.json">
+    <!-- Cấu hình Màu sắc & Thanh trạng thái cho Safari / iOS / PWA -->
+    <meta name="color-scheme" content="dark">
     <meta name="theme-color" content="#1a0b1f">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="BirthdayApp">
-    <link rel="apple-touch-icon" href="assets/image/icon-192.png">
 
-    <!-- IMPORT FONTS -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Poppins:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    <!-- Preload Assets quan trọng để render tức thì ở lần truy cập đầu -->
+    <link rel="preload" href="assets/image/cake_birthday.svg" as="image">
+    <link rel="preload" href="assets/image/Bunting_Garland.svg" as="image">
+    <link rel="preload" href="assets/image/Matchstick.svg" as="image">
 
-    <!-- IMPORT CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-    <!-- SURPRISE OVERLAY -->
-    <div id="scene-surprise">
-        <p class="surprise-title">Có một bất ngờ dành cho bạn, muốn xem không?</p>
-        <div class="surprise-btn-group">
-            <button id="surprise-btn-yes" class="surprise-btn">yes!!</button>
-            <button id="surprise-btn-no" class="surprise-btn">no thanks</button>
-        </div>
-    </div>
-
-    <!-- SCENE 1: INTRO -->
+    <!-- Scene 1: Màn hình Intro -->
     <div id="scene-intro">
-        <div class="particles" id="particles"></div>
-        <h1 class="happy-birthday" id="hb-text">Happy Birthday</h1>
-
-        <div class="center-group">
-            <div class="arrow" id="arrow">→</div>
-            <div class="center-glow" id="glow"></div>
-
-            <div class="numbers-window">
-                <div class="numbers-wrapper" id="numbers-wrapper"></div>
-            </div>
-
-            <div class="month-text" id="month">Tháng 6</div>
-        </div>
+        <button id="btn-start" onclick="goToCakeScene()">Bắt đầu</button>
     </div>
 
-    <!-- SCENE 2: CAKE & CANDLE -->
+    <!-- Scene 2: Màn hình Bánh Sinh Nhật -->
     <div id="scene-cake">
-        <div class="particles bright"></div>
-        <div class="warm-glow" id="warm-glow"></div>
+        <div class="cake-container">
+            <img src="assets/image/cake_birthday.svg" alt="Birthday Cake" class="cake-img">
+            
+            <!-- Hiệu ứng ngọn nến -->
+            <div class="cake-glow"></div>
+            <div class="flame"></div>
+            <div class="smoke"></div>
 
-        <img src="assets/image/Bunting_Garland.svg" class="bunting-garland" id="bunting" alt="Bunting Garland">
-
-        <div class="cake-container" id="cake-container">
-            <img src="assets/image/cake_birthday.svg" class="cake-img" alt="Birthday Cake">
-            <div class="candle-flame" id="candle-flame"></div>
-            <div class="smoke" id="smoke"></div>
-            <svg class="blow-progress-ring" viewBox="0 0 64 64">
-                <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
-                <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
+            <!-- Vòng Progress Ring SVG -->
+            <svg class="progress-ring" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45"></circle>
             </svg>
         </div>
-
-        <img src="assets/image/Matchstick.svg" class="matchstick" id="matchstick" alt="Matchstick">
-
-        <div class="subtitle-container">
-            <p class="subtitle-text" id="subtitle-text"></p>
-            <p class="instruction-text" id="instruction-text">👆 Nhấn giữ hoặc vuốt lên ngọn nến để thổi nến</p>
-        </div>
     </div>
 
-    <!-- SCENE 3: WISHES -->
-    <div id="scene-wishes" class="scene">
-        <div id="fireflies-container"></div>
-        <div class="wishes-header-small">MỘT ĐIỀU ƯỚC</div>
-        <h2 class="wishes-title">Bây giờ... chọn một điều ước cho ngày sinh nhật của cậu.</h2>
-        <div class="wishes-grid">
-            <div class="wish-card" data-wish="happiness">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="vietlott">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="health">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-            <div class="wish-card" data-wish="peace">
-                <img src="assets/image/lo_uoc_nguyen.svg" alt="Lọ ước nguyện">
-            </div>
-        </div>
-    </div>
+    <!-- File âm thanh -->
+    <audio id="bg-music-intro" src="assets/audio/intro.mp3" loop></audio>
+    <audio id="sfx-blow" src="assets/audio/blow.mp3"></audio>
 
-    <!-- SCENE 4: MUSIC PLAYER -->
-    <div id="scene-player" class="scene">
-        <div class="fireflies-container"></div>
-        <audio id="bg-audio" preload="auto"></audio>
-        <div class="player-wrapper">
-            <div class="turntable-box">
-                <img src="assets/image/disc.svg" alt="Đế máy phát" class="turntable-bg">
-                <img id="vinyl-disc" src="" alt="Đĩa nhạc" class="vinyl-record">
-                <div class="turntable-center-pin"></div>
-                <div class="tonearm"></div>
-            </div>
-            <button id="start-listen-btn" class="listen-btn">▶ Bắt đầu lắng nghe</button>
-        </div>
-        
-        <div class="end-buttons-container" id="end-buttons-container">
-            <button class="custom-action-btn" id="replay-btn">↺ Nghe lại</button>
-            <button class="custom-action-btn" id="send-sky-btn">⭐ Gửi lời chúc lên bầu trời</button>
-        </div>
-    </div>
-
-    <!-- OVERLAYS DÙNG CHUNG -->
-    <div class="dark-overlay" id="dark-overlay"></div>
-    <div class="final-wish" id="final-wish"></div>
-
-    <!-- JAVASCRIPT -->
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
-
 </html>
