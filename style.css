@@ -19,12 +19,13 @@ body {
     width: 100%;
     height: 100%;
     height: 100dvh;
+    height: -webkit-fill-available;
     overflow: hidden;
     touch-action: none;
     user-select: none;
     -webkit-user-select: none;
     overscroll-behavior: none;
-    background-color: #000;
+    background-color: #1a0b1f;
     font-family: 'Playfair Display', serif;
 }
 
@@ -32,6 +33,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+/* 2. Chặn hoàn toàn việc trích xuất / kéo thả / gọi menu cho toàn bộ thẻ img */
+img {
+    -webkit-touch-callout: none !important;
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
 }
 
 /* ==========================================
@@ -351,6 +360,7 @@ body {
     height: auto;
     filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
     transition: filter 0.3s ease;
+    pointer-events: none; /* Giúp thao tác touch đi thẳng vào .cake-container */
 }
 
 .candle-flame {
