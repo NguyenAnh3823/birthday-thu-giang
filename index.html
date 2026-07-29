@@ -3,8 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Birthday Intro Scene</title>
+
+    <!-- PWA & FULLSCREEN META TAGS -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a0b1f">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="BirthdayApp">
+    <link rel="apple-touch-icon" href="assets/image/icon-192.png">
 
     <!-- IMPORT FONTS -->
     <link
@@ -16,6 +26,15 @@
 </head>
 
 <body>
+
+    <!-- SURPRISE OVERLAY (Màn hình hỏi trước Scene 1) -->
+    <div id="scene-surprise">
+        <p class="surprise-title">Có một bất ngờ dành cho bạn, muốn xem không?</p>
+        <div class="surprise-btn-group">
+            <button id="surprise-btn-yes" class="surprise-btn">yes!!</button>
+            <button id="surprise-btn-no" class="surprise-btn">no thanks</button>
+        </div>
+    </div>
 
     <!-- SCENE 1: Màn hình Intro chọn ngày -->
     <div id="scene-intro">
