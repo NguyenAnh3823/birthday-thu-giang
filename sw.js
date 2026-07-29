@@ -1,4 +1,4 @@
-const CACHE_NAME = 'birthday-pwa-v1';
+const CACHE_NAME = 'birthday-pwa-v2';
 const ASSETS_TO_CACHE = [
     './',
     './index.html',
@@ -9,20 +9,21 @@ const ASSETS_TO_CACHE = [
     'assets/image/cake_birthday.svg',
     'assets/image/Matchstick.svg',
     'assets/image/lo_uoc_nguyen.svg',
-    'assets/image/disc.svg'
+    'assets/image/disc.svg',
+    'assets/image/disc_happiness.svg',
+    'assets/image/disc_vietlott.svg',
+    'assets/image/disc_health.svg',
+    'assets/image/disc_peace.svg',
+    'assets/audio/happy_birthday.mp3'
 ];
 
-// Cài đặt Service Worker và lưu Cache
 self.addEventListener('install', (event) => {
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS_TO_CACHE);
-        })
+        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
     );
     self.skipWaiting();
 });
 
-// Kích hoạt và dọn dẹp cache cũ
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((keys) => {
@@ -38,7 +39,6 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
-// Phục vụ dữ liệu từ Cache khi Offline
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
