@@ -144,7 +144,7 @@ if (wrapper) {
 
 function getNumberHeight() {
     const sampleItem = document.querySelector('.number-item');
-    return sampleItem ? sampleItem.offsetHeight : 90;
+    return sampleItem ? sampleItem.getBoundingClientRect().height : 70;
 }
 
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -791,7 +791,7 @@ function enableBlowCandleInteraction() {
         const diffX = currentX - touchStartX;
         const diffY = currentY - touchStartY;
 
-        if (Math.abs(diffX) > 35 || Math.abs(diffY) > 35) {
+        if (Math.abs(diffX) > 25 || Math.abs(diffY) > 25) {
             let currentDirection = Math.abs(diffX) > Math.abs(diffY)
                 ? (diffX > 0 ? 'right' : 'left')
                 : (diffY > 0 ? 'down' : 'up');
@@ -840,10 +840,10 @@ function initFireflies() {
         firefly.style.left = `${Math.random() * window.innerWidth}px`;
         firefly.style.top = `${Math.random() * window.innerHeight}px`;
 
-        const moveX = (Math.random() - 0.5) * 250;
-        const moveY = (Math.random() - 0.5) * 250;
-        const moveX2 = moveX + (Math.random() - 0.5) * 150;
-        const moveY2 = moveY + (Math.random() - 0.5) * 150;
+        const moveX = (Math.random() - 0.5) * 200;
+        const moveY = (Math.random() - 0.5) * 200;
+        const moveX2 = moveX + (Math.random() - 0.5) * 120;
+        const moveY2 = moveY + (Math.random() - 0.5) * 120;
 
         firefly.style.setProperty('--moveX', `${moveX}px`);
         firefly.style.setProperty('--moveY', `${moveY}px`);
@@ -892,7 +892,6 @@ function initWishCardsInteraction() {
     };
 
     let selectedWishType = 'happiness';
-    let fireflyInterval = null;
 
     cards.forEach(card => {
         const handleWishSelection = () => {
@@ -927,7 +926,7 @@ function initWishCardsInteraction() {
 
             setTimeout(() => {
                 card.style.transition = 'transform 1.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.4s ease';
-                card.style.transform = 'translateY(-260px) scale(0.15)';
+                card.style.transform = 'translateY(-30vh) scale(0.15)';
                 card.style.opacity = '0';
 
                 setTimeout(() => {
@@ -1052,7 +1051,7 @@ function initWishCardsInteraction() {
                     <div class="sky-fireflies-layer"></div>
                     <div class="sky-header-group" style="display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2;">
                         <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase; margin: 0;">Gửi lên trời</div>
-                        <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.9); text-transform: uppercase; margin: 0; text-align: center;">Biến điều ước thành sao băng</div>
+                        <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.3rem, 3.8vmin, 2rem); font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.9); text-transform: uppercase; margin: 0; text-align: center;">Biến điều ước thành sao băng</div>
                     </div>
                     <div class="glowing-star-container" id="glowing-star" style="position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; margin: 5px 0;">
                         <div class="star-glow-effect"></div>
@@ -1060,7 +1059,7 @@ function initWishCardsInteraction() {
                             <path d="M50 0 Q50 50 100 50 Q50 50 50 100 Q50 50 0 50 Q50 50 50 0 Z" fill="#ffffff" />
                         </svg>
                     </div>
-                    <div class="sky-subtitle" id="sky-subtitle" style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.2rem, 3.5vw, 1.8rem); color: #fff; text-align: center; max-width: 85%; opacity: 0; transition: opacity 0.8s ease; min-height: 60px; line-height: 1.5; z-index: 2; margin: 0;"></div>
+                    <div class="sky-subtitle" id="sky-subtitle" style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.1rem, 3.5vmin, 1.8rem); color: #fff; text-align: center; max-width: 85%; opacity: 0; transition: opacity 0.8s ease; min-height: 60px; line-height: 1.5; z-index: 2; margin: 0;"></div>
                 `;
                 document.body.appendChild(skyScene);
 
@@ -1139,6 +1138,7 @@ function initWishCardsInteraction() {
         });
     }
 
+    let fireflyInterval = null;
     function startFireflies() {
         const container = document.querySelector('#scene-player .fireflies-container');
         if (!container) return;
@@ -1151,8 +1151,8 @@ function initWishCardsInteraction() {
             firefly.style.left = `${Math.random() * window.innerWidth}px`;
             firefly.style.top = `${Math.random() * window.innerHeight}px`;
 
-            const moveX = (Math.random() - 0.5) * 250;
-            const moveY = (Math.random() - 0.5) * 250;
+            const moveX = (Math.random() - 0.5) * 200;
+            const moveY = (Math.random() - 0.5) * 200;
             firefly.style.setProperty('--fireflyX', `${moveX}px`);
             firefly.style.setProperty('--fireflyY', `${moveY}px`);
 
