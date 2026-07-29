@@ -131,7 +131,6 @@ hbBgm.volume = 0.6;
 // HÀM MỞ KHÓA ÂM THANH CHO SAFARI / IPAD OS
 function unlockAudio() {
     if (hbBgm) {
-        // Thử play và pause ngay lập tức để xin quyền Autoplay từ WebKit
         hbBgm.play().then(() => {
             hbBgm.pause();
             hbBgm.currentTime = 0;
@@ -641,7 +640,6 @@ function enableBlowCandleInteraction() {
     let currentProgress = 0;
     let holdTimer = null;
     let audioFadeInterval = null;
-
     let touchStartY = 0;
 
     const CIRCUMFERENCE = 2 * Math.PI * 26;
@@ -653,7 +651,6 @@ function enableBlowCandleInteraction() {
         ringFill.style.strokeDashoffset = `${CIRCUMFERENCE}`;
     }
 
-    // Giai đoạn Fade Nhạc Intro mượt mà (500-800ms)
     const fadeOutIntroAudio = () => {
         if (audioFadeInterval) clearInterval(audioFadeInterval);
         audioFadeInterval = setInterval(() => {
@@ -666,7 +663,6 @@ function enableBlowCandleInteraction() {
         }, 50);
     };
 
-    // Tắt hoàn toàn nhạc intro sau khi thổi thành công
     const stopIntroAudioCompletely = () => {
         if (audioFadeInterval) clearInterval(audioFadeInterval);
         stopDanDaHappyBirthday();
@@ -676,7 +672,6 @@ function enableBlowCandleInteraction() {
         }
     };
 
-    // Thổi nến thành công - Chuyển cảnh Điện ảnh
     const extinguishCandle = async () => {
         if (isBlown) return;
         isBlown = true;
@@ -684,12 +679,10 @@ function enableBlowCandleInteraction() {
         clearHold();
         stopIntroAudioCompletely();
 
-        // 1. Phản hồi hình ảnh thổi tắt nến điện ảnh
         candleFlame.style.transform = 'translate(-50%, -100%) scale(0.1) rotate(15deg)';
         candleFlame.style.opacity = '0';
         warmGlow.style.opacity = '0';
 
-        // Khói bay lên
         smoke.classList.add('active');
         smoke.style.opacity = '0.9';
 
@@ -698,14 +691,12 @@ function enableBlowCandleInteraction() {
         subtitleText.classList.remove('show');
         instructionText.classList.remove('show');
 
-        // Nền tối dần
         await delay(600);
         darkOverlay.classList.add('active');
         sceneCake.style.opacity = '0';
 
         await delay(1800);
 
-        // Phát nhạc nền cho cảnh tiếp theo
         hbBgm.volume = 0.6;
         hbBgm.play().catch(err => console.log("BGM play failed:", err));
 
@@ -739,34 +730,29 @@ function enableBlowCandleInteraction() {
         }
     };
 
-    // Cập nhật phản hồi thị giác ngọn lửa theo Progress
     const updateFlameBlowingState = (progressRatio) => {
         if (isBlown) return;
 
         currentProgress = Math.min(Math.max(progressRatio, 0), 1);
 
-        // Ngọn lửa nghiêng và thu nhỏ mượt mà
         const scale = 1 - (currentProgress * 0.6);
         const opacity = 1 - (currentProgress * 0.5);
-        const tiltAngle = (Math.random() - 0.5) * 12 + (currentProgress * 20); // Nghiêng theo gió
+        const tiltAngle = (Math.random() - 0.5) * 12 + (currentProgress * 20);
 
         candleFlame.style.transform = `translate(-50%, -100%) scale(${scale}) rotate(${tiltAngle}deg)`;
         candleFlame.style.opacity = opacity;
         candleFlame.style.filter = `drop-shadow(0 0 ${12 * (1 - currentProgress)}px #ff5722)`;
 
-        // Warm glow mờ dần
         warmGlow.style.opacity = (1 - currentProgress).toFixed(2);
 
-        // Khi gần hoàn thành (> 70%), xuất hiện khói mờ trước khi nến tắt
         if (currentProgress >= 0.7) {
             smoke.style.opacity = ((currentProgress - 0.7) / 0.3 * 0.7).toFixed(2);
         } else {
             smoke.style.opacity = '0';
         }
 
-        // Cập nhật Progress Ring
         if (progressRing && ringFill) {
-            progressRing.classList.add('active'); // Hiện ngay lập tức
+            progressRing.classList.add('active');
             const offset = CIRCUMFERENCE - (currentProgress * CIRCUMFERENCE);
             ringFill.style.strokeDashoffset = offset;
         }
@@ -792,16 +778,14 @@ function enableBlowCandleInteraction() {
             ringFill.style.strokeDashoffset = `${CIRCUMFERENCE}`;
         }
         if (hbBgm && hbBgm.volume < 0.6) {
-            hbBgm.volume = 0.6; // Trở lại volume cũ nếu buông tay
+            hbBgm.volume = 0.6;
         }
     };
 
-    // Bắt đầu thao tác (TouchStart / MouseDown)
     const startInteraction = (e) => {
         unlockAudio();
         if (isBlown) return;
 
-        // Hiện Ring phản hồi ngay tức thì
         if (progressRing) progressRing.classList.add('active');
 
         fadeOutIntroAudio();
@@ -812,7 +796,7 @@ function enableBlowCandleInteraction() {
         }
 
         const startTime = Date.now();
-        const duration = 2200; // 2.2 giây giữ là thổi xong
+        const duration = 2200;
 
         if (holdTimer) clearInterval(holdTimer);
         holdTimer = setInterval(() => {
@@ -832,11 +816,10 @@ function enableBlowCandleInteraction() {
         }
     };
 
-    // Xử lý Vuốt mượt mà (Swipe Gesture)
     const handleTouchMove = (e) => {
         if (isBlown || !e.touches || !e.touches[0]) return;
         const currentY = e.touches[0].clientY;
-        const deltaY = touchStartY - currentY; // Vuốt lên deltaY > 0
+        const deltaY = touchStartY - currentY;
 
         if (deltaY > 10) {
             const swipeProgress = Math.min(deltaY / 150, 1);
@@ -844,7 +827,6 @@ function enableBlowCandleInteraction() {
         }
     };
 
-    // Đăng ký Event Listeners cho toàn bộ container bánh
     cakeContainer.addEventListener('touchstart', startInteraction, { passive: true });
     cakeContainer.addEventListener('touchend', clearHold);
     cakeContainer.addEventListener('touchcancel', clearHold);
@@ -853,86 +835,6 @@ function enableBlowCandleInteraction() {
     cakeContainer.addEventListener('mouseup', clearHold);
     cakeContainer.addEventListener('mouseleave', clearHold);
 }
-
-const startHold = (e) => {
-    unlockAudio();
-    playDanDaHappyBirthday();
-    if (isBlown) return;
-    if (e.touches && e.touches[0]) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-    }
-
-    holdStartTime = Date.now();
-    holdProgressTimer = setInterval(() => {
-        const elapsedTime = Date.now() - holdStartTime;
-        const progress = Math.min(elapsedTime / HOLD_DURATION, 1);
-        updateFlameBlowingState(progress, 'hold');
-
-        if (elapsedTime >= HOLD_DURATION) {
-            extinguishCandle();
-        }
-    }, 50);
-
-    playBlowSound();
-};
-
-const clearHold = () => {
-    if (holdProgressTimer) {
-        clearInterval(holdProgressTimer);
-        holdProgressTimer = null;
-    }
-    if (!isBlown) resetFlameState();
-};
-
-const clearSwipeReset = () => {
-    if (swipeResetTimer) {
-        clearTimeout(swipeResetTimer);
-        swipeResetTimer = null;
-    }
-};
-
-const handleTouchMove = (e) => {
-    if (isBlown || !e.touches || !e.touches[0]) return;
-    const currentX = e.touches[0].clientX;
-    const currentY = e.touches[0].clientY;
-    const diffX = currentX - touchStartX;
-    const diffY = currentY - touchStartY;
-
-    if (Math.abs(diffX) > 25 || Math.abs(diffY) > 25) {
-        let currentDirection = Math.abs(diffX) > Math.abs(diffY)
-            ? (diffX > 0 ? 'right' : 'left')
-            : (diffY > 0 ? 'down' : 'up');
-
-        if (lastSwipeDirection && lastSwipeDirection !== currentDirection) {
-            swipeCount++;
-            updateFlameBlowingState(swipeCount / 5, 'swipe');
-
-            if (swipeCount >= 5) {
-                extinguishCandle();
-                return;
-            }
-
-            clearSwipeReset();
-            swipeResetTimer = setTimeout(() => {
-                swipeCount = 0;
-                lastSwipeDirection = null;
-                resetFlameState();
-            }, 1500);
-        }
-
-        lastSwipeDirection = currentDirection;
-        touchStartX = currentX;
-        touchStartY = currentY;
-    }
-};
-
-cakeContainer.addEventListener('touchstart', startHold, { passive: true });
-cakeContainer.addEventListener('touchend', clearHold);
-cakeContainer.addEventListener('touchcancel', clearHold);
-cakeContainer.addEventListener('touchmove', handleTouchMove, { passive: true });
-cakeContainer.addEventListener('mousedown', startHold);
-cakeContainer.addEventListener('mouseup', clearHold);
 
 function initFireflies() {
     const container = document.getElementById('fireflies-container');
@@ -1289,12 +1191,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnYes = document.getElementById('surprise-btn-yes');
     const btnNo = document.getElementById('surprise-btn-no');
 
-    // Chờ Font & Asset SVG sẵn sàng hoàn toàn trước khi kích hoạt Layout
     const prepareStableLayout = async () => {
         if (document.fonts) {
             await document.fonts.ready;
         }
-        // Force Reflow để Safari iPad tính đúng kích thước Viewport & Element
         void document.body.offsetHeight;
     };
 
