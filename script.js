@@ -4,37 +4,45 @@
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('Service Worker đã đăng ký thành công:', reg.scope))
-            .catch(err => console.log('Service Worker đăng ký thất bại:', err));
+            .then(reg => console.log('SW Registered:', reg.scope))
+            .catch(err => console.error('SW Registration Failed:', err));
     });
 }
 
-// Hàm bật chế độ Web App Fullscreen tương thích đa trình duyệt
 function requestAppFullScreen() {
     const docEl = document.documentElement;
     if (docEl.requestFullscreen) {
         docEl.requestFullscreen().catch(() => { });
-    } else if (docEl.webkitRequestFullscreen) { /* Safari / iOS */
+    } else if (docEl.webkitRequestFullscreen) {
         docEl.webkitRequestFullscreen();
-    } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+    } else if (docEl.msRequestFullscreen) {
         docEl.msRequestFullscreen();
     }
 }
 
+// Quản lý AudioContext dùng chung
+let sharedAudioCtx = null;
+function getAudioContext() {
+    if (!sharedAudioCtx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) sharedAudioCtx = new AudioCtx();
+    }
+    if (sharedAudioCtx && sharedAudioCtx.state === 'suspended') {
+        sharedAudioCtx.resume();
+    }
+    return sharedAudioCtx;
+}
+
 // ==========================================
-// 0. CẤU HÌNH ÂM THANH ĐÀN ĐÁ & NHẠC NỀN MP3
+// 0. CẤU HÌNH ÂM THANH ĐÀN ĐÁ & BGM
 // ==========================================
-let danDaAudioCtx = null;
 let isDanDaPlaying = false;
+let danDaTimer = null;
 
 function playDanDaHappyBirthday() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        if (!danDaAudioCtx) danDaAudioCtx = new AudioContext();
-        if (danDaAudioCtx.state === 'suspended') danDaAudioCtx.resume();
-
-        if (isDanDaPlaying) return;
+        const ctx = getAudioContext();
+        if (!ctx || isDanDaPlaying) return;
         isDanDaPlaying = true;
 
         const PITCH_SCALE = 1.35;
@@ -56,17 +64,16 @@ function playDanDaHappyBirthday() {
             { f: 783.99, d: 0.7 }, { f: 698.46, d: 1.8 }
         ];
 
-        let currTime = danDaAudioCtx.currentTime;
+        let currTime = ctx.currentTime;
 
         rawNotes.forEach(rawNote => {
             const freq = rawNote.f * PITCH_SCALE;
             const duration = rawNote.d * TEMPO_SCALE;
 
-            const osc1 = danDaAudioCtx.createOscillator();
-            const gain1 = danDaAudioCtx.createGain();
-
-            const osc2 = danDaAudioCtx.createOscillator();
-            const gain2 = danDaAudioCtx.createGain();
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            const osc2 = ctx.createOscillator();
+            const gain2 = ctx.createGain();
 
             osc1.type = 'sine';
             osc1.frequency.setValueAtTime(freq, currTime);
@@ -84,8 +91,8 @@ function playDanDaHappyBirthday() {
 
             osc1.connect(gain1);
             osc2.connect(gain2);
-            gain1.connect(danDaAudioCtx.destination);
-            gain2.connect(danDaAudioCtx.destination);
+            gain1.connect(ctx.destination);
+            gain2.connect(ctx.destination);
 
             osc1.start(currTime);
             osc1.stop(currTime + duration * 0.95);
@@ -96,18 +103,25 @@ function playDanDaHappyBirthday() {
             currTime += duration + 0.035;
         });
 
-        const totalDuration = currTime - danDaAudioCtx.currentTime;
+        const totalDuration = currTime - ctx.currentTime;
 
         if (isDanDaPlaying) {
-            setTimeout(() => {
-                if (isDanDaPlaying) playDanDaHappyBirthday();
+            danDaTimer = setTimeout(() => {
+                isDanDaPlaying = false;
+                playDanDaHappyBirthday();
             }, totalDuration * 1000 + 1000);
         }
-    } catch (e) { }
+    } catch (e) {
+        isDanDaPlaying = false;
+    }
 }
 
 function stopDanDaHappyBirthday() {
     isDanDaPlaying = false;
+    if (danDaTimer) {
+        clearTimeout(danDaTimer);
+        danDaTimer = null;
+    }
 }
 
 const hbBgm = new Audio('assets/audio/happy_birthday.mp3');
@@ -115,16 +129,18 @@ hbBgm.loop = true;
 hbBgm.volume = 0.6;
 
 // ==========================================
-// 1. CẤU HÌNH BIẾN CHÍNH (SCENE 1)
+// 1. CẤU HÌNH SCENE 1
 // ==========================================
 const targetDate = 12;
 const wrapper = document.getElementById('numbers-wrapper');
 
-let html = '';
-for (let i = 1; i <= 31; i++) {
-    html += `<div class="number-item" id="num-${i}">${i}</div>`;
+if (wrapper) {
+    let html = '';
+    for (let i = 1; i <= 31; i++) {
+        html += `<div class="number-item" id="num-${i}">${i}</div>`;
+    }
+    wrapper.innerHTML = html;
 }
-if (wrapper) wrapper.innerHTML = html;
 
 function getNumberHeight() {
     const sampleItem = document.querySelector('.number-item');
@@ -134,14 +150,12 @@ function getNumberHeight() {
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // ==========================================
-// 2. CÁC HÀM ÂM THANH HIỆU ỨNG (NÂNG CẤP)
+// 2. CÁC HÀM ÂM THANH HIỆU ỨNG
 // ==========================================
-
 function playTickSound(currentIndex = 1) {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
 
         const dist = Math.abs(targetDate - currentIndex);
         const baseFreq = 1200 - Math.min(dist, 16) * 50;
@@ -165,9 +179,8 @@ function playTickSound(currentIndex = 1) {
 
 function playTargetSelectedSound() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const now = ctx.currentTime;
 
         const oscSlide = ctx.createOscillator();
@@ -218,9 +231,8 @@ function playTargetSelectedSound() {
 
 function playLightCandleSound() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const now = ctx.currentTime;
 
         const oscSpark = ctx.createOscillator();
@@ -270,9 +282,8 @@ function playLightCandleSound() {
 
 function playWishSuccessSound() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
         const now = ctx.currentTime;
 
         const duration = 0.55;
@@ -327,49 +338,46 @@ function playWishSuccessSound() {
     } catch (e) { }
 }
 
-let sharedAudioCtx = null;
 function playBlowSound() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        if (!sharedAudioCtx) sharedAudioCtx = new AudioContext();
-        if (sharedAudioCtx.state === 'suspended') sharedAudioCtx.resume();
+        const ctx = getAudioContext();
+        if (!ctx) return;
 
         const duration = 1.5;
-        const bufferSize = sharedAudioCtx.sampleRate * duration;
-        const buffer = sharedAudioCtx.createBuffer(1, bufferSize, sharedAudioCtx.sampleRate);
+        const bufferSize = ctx.sampleRate * duration;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
 
         for (let i = 0; i < bufferSize; i++) {
             data[i] = Math.random() * 2 - 1;
         }
 
-        const noise = sharedAudioCtx.createBufferSource();
+        const noise = ctx.createBufferSource();
         noise.buffer = buffer;
-        const filter = sharedAudioCtx.createBiquadFilter();
+        const filter = ctx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(250, sharedAudioCtx.currentTime);
-        filter.frequency.linearRampToValueAtTime(550, sharedAudioCtx.currentTime + duration / 2);
-        filter.frequency.linearRampToValueAtTime(150, sharedAudioCtx.currentTime + duration);
+        filter.frequency.setValueAtTime(250, ctx.currentTime);
+        filter.frequency.linearRampToValueAtTime(550, ctx.currentTime + duration / 2);
+        filter.frequency.linearRampToValueAtTime(150, ctx.currentTime + duration);
 
-        const gain = sharedAudioCtx.createGain();
-        gain.gain.setValueAtTime(0.01, sharedAudioCtx.currentTime);
-        gain.gain.linearRampToValueAtTime(0.25, sharedAudioCtx.currentTime + 0.4);
-        gain.gain.linearRampToValueAtTime(0.001, sharedAudioCtx.currentTime + duration);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.01, ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.4);
+        gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + duration);
 
         noise.connect(filter);
         filter.connect(gain);
-        gain.connect(sharedAudioCtx.destination);
+        gain.connect(ctx.destination);
         noise.start();
-        noise.stop(sharedAudioCtx.currentTime + duration);
+        noise.stop(ctx.currentTime + duration);
     } catch (e) { }
 }
 
 function playTonearmSound() {
     try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (!AudioContext) return;
-        const ctx = new AudioContext();
+        const ctx = getAudioContext();
+        if (!ctx) return;
+
         const duration = 0.4;
         const bufferSize = ctx.sampleRate * duration;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
@@ -444,7 +452,7 @@ async function runAnimationFlow() {
     requestAnimationFrame(monitorScrolling);
 
     await delay(2500);
-    document.getElementById(`num-${targetDate}`).classList.add('active');
+    document.getElementById(`num-${targetDate}`)?.classList.add('active');
     playTargetSelectedSound();
     document.getElementById('glow').style.opacity = '1';
     document.getElementById('arrow').style.opacity = '1';
@@ -527,13 +535,15 @@ async function updateSubtitle(text, displayTimeMs) {
 // ==========================================
 function launchFireworks() {
     const canvas = document.createElement('canvas');
-    canvas.style.position = 'fixed';
-    canvas.style.top = '0';
-    canvas.style.left = '0';
-    canvas.style.width = '100vw';
-    canvas.style.height = '100vh';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '9999';
+    Object.assign(canvas.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        pointerEvents: 'none',
+        zIndex: '9999'
+    });
     document.body.appendChild(canvas);
 
     const ctx = canvas.getContext('2d');
@@ -548,8 +558,7 @@ function launchFireworks() {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 7 + 2;
             particles.push({
-                x: x,
-                y: y,
+                x, y,
                 vx: Math.cos(angle) * speed,
                 vy: Math.sin(angle) * speed,
                 alpha: 1,
@@ -567,15 +576,16 @@ function launchFireworks() {
     function animate() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        particles.forEach((p, index) => {
+        for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
             p.x += p.vx;
             p.y += p.vy;
             p.vy += 0.06;
             p.alpha -= p.decay;
 
             if (p.alpha <= 0) {
-                particles.splice(index, 1);
-                return;
+                particles.splice(i, 1);
+                continue;
             }
 
             ctx.save();
@@ -585,7 +595,7 @@ function launchFireworks() {
             ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
-        });
+        }
 
         if (particles.length > 0) {
             requestAnimationFrame(animate);
@@ -609,6 +619,8 @@ function enableBlowCandleInteraction() {
     const instructionText = document.getElementById('instruction-text');
     const subtitleText = document.getElementById('subtitle-text');
     const sceneCake = document.getElementById('scene-cake');
+    const darkOverlay = document.getElementById('dark-overlay');
+    const finalWish = document.getElementById('final-wish');
 
     instructionText.textContent = "👆 Nhấn giữ hoặc vuốt lên ngọn nến để thổi nến";
 
@@ -623,36 +635,10 @@ function enableBlowCandleInteraction() {
     let touchStartY = 0;
     let swipeResetTimer = null;
 
-    let darkOverlay = document.querySelector('.dark-overlay');
-    if (!darkOverlay) {
-        darkOverlay = document.createElement('div');
-        darkOverlay.className = 'dark-overlay';
-        document.body.appendChild(darkOverlay);
-    }
-
-    let finalWish = document.querySelector('.final-wish');
-    if (!finalWish) {
-        finalWish = document.createElement('div');
-        finalWish.className = 'final-wish';
-        document.body.appendChild(finalWish);
-    }
-
     const CIRCUMFERENCE = 2 * Math.PI * 26;
-    let progressRing = cakeContainer.querySelector('.blow-progress-ring');
-    let ringFill = null;
+    const progressRing = cakeContainer.querySelector('.blow-progress-ring');
+    const ringFill = progressRing ? progressRing.querySelector('.ring-fill') : null;
 
-    if (!progressRing) {
-        progressRing = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        progressRing.setAttribute('class', 'blow-progress-ring');
-        progressRing.setAttribute('viewBox', '0 0 64 64');
-        progressRing.innerHTML = `
-            <circle class="ring-bg" cx="32" cy="32" r="26" fill="none"></circle>
-            <circle class="ring-fill" cx="32" cy="32" r="26" fill="none"></circle>
-        `;
-        cakeContainer.appendChild(progressRing);
-    }
-
-    ringFill = progressRing.querySelector('.ring-fill');
     if (ringFill) {
         ringFill.style.strokeDasharray = `${CIRCUMFERENCE} ${CIRCUMFERENCE}`;
         ringFill.style.strokeDashoffset = `${CIRCUMFERENCE}`;
@@ -664,7 +650,6 @@ function enableBlowCandleInteraction() {
 
         clearHold();
         clearSwipeReset();
-
         stopDanDaHappyBirthday();
 
         if (progressRing) progressRing.classList.remove('active');
@@ -765,7 +750,7 @@ function enableBlowCandleInteraction() {
     const startHold = (e) => {
         playDanDaHappyBirthday();
         if (isBlown) return;
-        if (e.touches) {
+        if (e.touches && e.touches[0]) {
             touchStartX = e.touches[0].clientX;
             touchStartY = e.touches[0].clientY;
         }
@@ -800,7 +785,7 @@ function enableBlowCandleInteraction() {
     };
 
     const handleTouchMove = (e) => {
-        if (isBlown || !e.touches) return;
+        if (isBlown || !e.touches || !e.touches[0]) return;
         const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
         const diffX = currentX - touchStartX;
@@ -845,6 +830,7 @@ function enableBlowCandleInteraction() {
 function initFireflies() {
     const container = document.getElementById('fireflies-container');
     if (!container) return;
+    container.innerHTML = '';
 
     const fireflyCount = 20;
     for (let i = 0; i < fireflyCount; i++) {
@@ -880,8 +866,8 @@ function initWishCardsInteraction() {
     const firefliesContainer = document.getElementById('fireflies-container');
     const wishesHeaderSmall = document.querySelector('.wishes-header-small');
     const wishesTitle = document.querySelector('.wishes-title');
-    const finalWish = document.querySelector('.final-wish');
-    const darkOverlay = document.querySelector('.dark-overlay');
+    const finalWish = document.getElementById('final-wish');
+    const darkOverlay = document.getElementById('dark-overlay');
 
     const scenePlayer = document.getElementById('scene-player');
     const turntableBox = document.querySelector('.turntable-box');
@@ -889,6 +875,7 @@ function initWishCardsInteraction() {
     const needle = document.querySelector('.tonearm');
     const startListenBtn = document.getElementById('start-listen-btn');
     const bgAudio = document.getElementById('bg-audio');
+    const endButtonsContainer = document.getElementById('end-buttons-container');
 
     const discMapping = {
         'happiness': 'assets/image/disc_happiness.svg',
@@ -966,55 +953,7 @@ function initWishCardsInteraction() {
         };
 
         card.addEventListener('click', handleWishSelection);
-        card.addEventListener('touchstart', handleWishSelection, { passive: true });
     });
-
-    let endButtonsContainer = document.querySelector('.end-buttons-container');
-    if (!endButtonsContainer) {
-        endButtonsContainer = document.createElement('div');
-        endButtonsContainer.className = 'end-buttons-container';
-        endButtonsContainer.innerHTML = `
-            <button class="custom-action-btn" id="replay-btn">↺ Nghe lại</button>
-            <button class="custom-action-btn" id="send-sky-btn">⭐ Gửi lời chúc lên bầu trời</button>
-        `;
-        endButtonsContainer.style.position = 'absolute';
-        endButtonsContainer.style.bottom = '12%';
-        endButtonsContainer.style.left = '50%';
-        endButtonsContainer.style.transform = 'translateX(-50%)';
-        endButtonsContainer.style.display = 'flex';
-        endButtonsContainer.style.flexDirection = 'row';
-        endButtonsContainer.style.gap = '12px';
-        endButtonsContainer.style.alignItems = 'center';
-        endButtonsContainer.style.justifyContent = 'center';
-        endButtonsContainer.style.opacity = '0';
-        endButtonsContainer.style.pointerEvents = 'none';
-        endButtonsContainer.style.transition = 'opacity 0.8s ease';
-        endButtonsContainer.style.zIndex = '60';
-        endButtonsContainer.style.width = '100%';
-        endButtonsContainer.style.padding = '0 20px';
-        endButtonsContainer.style.boxSizing = 'border-box';
-
-        setTimeout(() => {
-            const btns = endButtonsContainer.querySelectorAll('.custom-action-btn');
-            btns.forEach(btn => {
-                btn.style.padding = '10px 18px';
-                btn.style.fontSize = 'clamp(0.9rem, 2.5vw, 1.1rem)';
-                btn.style.fontFamily = "'Montserrat', sans-serif";
-                btn.style.fontWeight = '500';
-                btn.style.borderRadius = '30px';
-                btn.style.border = '1px solid rgba(255, 255, 255, 0.3)';
-                btn.style.background = 'rgba(255, 255, 255, 0.15)';
-                btn.style.backdropFilter = 'blur(10px)';
-                btn.style.color = '#fff';
-                btn.style.cursor = 'pointer';
-                btn.style.boxShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.2)';
-                btn.style.transition = 'all 0.3s ease';
-                btn.style.whiteSpace = 'nowrap';
-            });
-        }, 100);
-
-        scenePlayer.appendChild(endButtonsContainer);
-    }
 
     const replayBtn = document.getElementById('replay-btn');
     const sendSkyBtn = document.getElementById('send-sky-btn');
@@ -1073,8 +1012,10 @@ function initWishCardsInteraction() {
         });
     }
 
+    let meteorInterval = null;
     function startMeteorShower(container) {
-        setInterval(() => {
+        if (meteorInterval) clearInterval(meteorInterval);
+        meteorInterval = setInterval(() => {
             const meteor = document.createElement('div');
             meteor.className = 'shooting-meteor';
             meteor.style.left = `${Math.random() * window.innerWidth}px`;
@@ -1110,8 +1051,8 @@ function initWishCardsInteraction() {
                     <div class="sky-bg-stars"></div>
                     <div class="sky-fireflies-layer"></div>
                     <div class="sky-header-group" style="display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 2;">
-                        <div class="sky-title" style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase; margin: 0;">Gửi lên trời</div>
-                        <div class="sky-title" style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.9); text-transform: uppercase; margin: 0; text-align: center;">Biến điều ước thành sao băng</div>
+                        <div style="font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; letter-spacing: 2px; color: rgba(255,255,255,0.7); text-transform: uppercase; margin: 0;">Gửi lên trời</div>
+                        <div style="font-family: 'Cormorant Garamond', serif; font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 600; letter-spacing: 2px; color: rgba(255,255,255,0.9); text-transform: uppercase; margin: 0; text-align: center;">Biến điều ước thành sao băng</div>
                     </div>
                     <div class="glowing-star-container" id="glowing-star" style="position: relative; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2; margin: 5px 0;">
                         <div class="star-glow-effect"></div>
@@ -1160,12 +1101,12 @@ function initWishCardsInteraction() {
             const skySubtitle = document.getElementById('sky-subtitle');
             const glowingStar = document.getElementById('glowing-star');
 
-            const showSkyText = async (text, duration) => {
+            const showSkyText = async (text, displayDuration) => {
                 skySubtitle.style.opacity = '0';
                 await delay(400);
                 skySubtitle.textContent = text;
                 skySubtitle.style.opacity = '1';
-                await delay(duration);
+                await delay(displayDuration);
             };
 
             await delay(1000);
@@ -1215,11 +1156,11 @@ function initWishCardsInteraction() {
             firefly.style.setProperty('--fireflyX', `${moveX}px`);
             firefly.style.setProperty('--fireflyY', `${moveY}px`);
 
-            const duration = Math.random() * 4 + 3;
-            firefly.style.animationDuration = `${duration}s`;
+            const animationDuration = Math.random() * 4 + 3;
+            firefly.style.animationDuration = `${animationDuration}s`;
             container.appendChild(firefly);
 
-            setTimeout(() => { firefly.remove(); }, duration * 1000);
+            setTimeout(() => { firefly.remove(); }, animationDuration * 1000);
         }, 250);
     }
 
@@ -1241,25 +1182,20 @@ window.addEventListener('DOMContentLoaded', () => {
     const btnYes = document.getElementById('surprise-btn-yes');
     const btnNo = document.getElementById('surprise-btn-no');
 
-    // Sự kiện khi bấm YES
     if (btnYes) {
         btnYes.addEventListener('click', () => {
-            // Kích hoạt chế độ Fullscreen trên thiết bị
             requestAppFullScreen();
 
             surpriseScreen.style.opacity = '0';
             setTimeout(() => {
                 surpriseScreen.style.display = 'none';
-                // Bắt đầu Scene 1
                 runAnimationFlow();
             }, 800);
         });
     }
 
-    // Sự kiện khi bấm NO THANKS
     if (btnNo) {
         btnNo.addEventListener('click', () => {
-            window.close();
             document.body.innerHTML = `
                 <div style="
                     background: #000; 
