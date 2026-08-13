@@ -2,7 +2,7 @@
     "name": "Birthday Thu Giang",
     "short_name": "EOS",
     "description": "Ứng dụng chúc mừng sinh nhật tương tác dạng Web App",
-    "start_url": "./index.html",
+    "start_url": "./",
     "display": "fullscreen",
     "orientation": "portrait",
     "background_color": "#1a0b1f",
