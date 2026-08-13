@@ -108,7 +108,6 @@ function playDanDaHappyBirthday() {
         if (isDanDaPlaying) {
             danDaTimer = setTimeout(() => {
                 isDanDaPlaying = false;
-                playDanDaHappyBirthday();
             }, totalDuration * 1000 + 1000);
         }
     } catch (e) {
@@ -622,8 +621,6 @@ function launchFireworks() {
 // 5. XỬ LÝ TƯƠNG TÁC THỔI NẾN & ĐOM ĐÓM
 // ==========================================
 function enableBlowCandleInteraction() {
-    playDanDaHappyBirthday();
-
     const cakeContainer = document.getElementById('cake-container');
     const candleFlame = document.getElementById('candle-flame');
     const warmGlow = document.getElementById('warm-glow');
