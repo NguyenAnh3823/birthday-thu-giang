@@ -1,48 +1,85 @@
-const CACHE_NAME = 'birthday-pwa-v2';
-const ASSETS_TO_CACHE = [
+const CACHE_NAME = 'birthday-pwa-v3'; // Tăng version để ép client xóa cache cũ
+
+const STATIC_ASSETS = [
     './',
     './index.html',
     './style.css',
     './script.js',
-    './manifest.json',
-    'assets/image/Bunting_Garland.svg',
-    'assets/image/cake_birthday.svg',
-    'assets/image/Matchstick.svg',
-    'assets/image/lo_uoc_nguyen.svg',
-    'assets/image/disc.svg',
-    'assets/image/disc_happiness.svg',
-    'assets/image/disc_vietlott.svg',
-    'assets/image/disc_health.svg',
-    'assets/image/disc_peace.svg',
-    'assets/audio/happy_birthday.mp3'
+    './manifest.json'
 ];
 
-self.addEventListener('install', (event) => {
+// Cài đặt và cache các asset tĩnh ban đầu
+self.addEventListener('install', event => {
+    self.skipWaiting(); // Ép Service Worker mới active ngay, không chờ đợi
     event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
+        caches.open(CACHE_NAME).then(cache => {
+            return cache.addAll(STATIC_ASSETS);
+        })
     );
-    self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+// Activate: Dọn dẹp cache cũ của version trước
+self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then((keys) => {
+        caches.keys().then(cacheNames => {
             return Promise.all(
-                keys.map((key) => {
-                    if (key !== CACHE_NAME) {
-                        return caches.delete(key);
+                cacheNames.map(cacheName => {
+                    if (cacheName !== CACHE_NAME) {
+                        console.log('Xóa cache cũ:', cacheName);
+                        return caches.delete(cacheName);
                     }
                 })
             );
-        })
+        }).then(() => self.clients.claim()) // Chiếm quyền kiểm soát client ngay lập tức
     );
-    self.clients.claim();
 });
 
-self.addEventListener('fetch', (event) => {
+// Chiến lược Fetch riêng biệt cho từng loại resource
+self.addEventListener('fetch', event => {
+    const request = event.request;
+
+    // 1. Dành cho HTML (Navigation): Network-first
+    if (request.mode === 'navigate' || request.headers.get('accept').includes('text/html')) {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    // Update cache bản mới nhất
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+                    return response;
+                })
+                .catch(() => caches.match(request)) // Mất mạng mới dùng cache
+        );
+        return;
+    }
+
+    // 2. Dành cho CSS / JS: Network-first
+    if (request.destination === 'style' || request.destination === 'script') {
+        event.respondWith(
+            fetch(request)
+                .then(response => {
+                    // Đảm bảo không lưu nhầm response lỗi (chỉ lưu status 200)
+                    if (response.status === 200) {
+                        const clone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+                    }
+                    return response;
+                })
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
+
+    // 3. Dành cho Ảnh, SVG, Audio (Asset tĩnh): Cache-first
     event.respondWith(
-        caches.match(event.request).then((cachedResponse) => {
-            return cachedResponse || fetch(event.request);
+        caches.match(request).then(cachedResponse => {
+            return cachedResponse || fetch(request).then(response => {
+                if (response.status === 200) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+                }
+                return response;
+            });
         })
     );
 });
