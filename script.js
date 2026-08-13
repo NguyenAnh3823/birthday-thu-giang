@@ -128,13 +128,32 @@ hbBgm.loop = true;
 hbBgm.volume = 0.6;
 
 // HÀM MỞ KHÓA ÂM THANH CHO SAFARI / IPAD OS
+let isAudioUnlocked = false;
+
+// HÀM MỞ KHÓA ÂM THANH CHO SAFARI / IPAD OS / ĐIỆN THOẠI
 function unlockAudio() {
+    // Nếu đã mở khóa rồi thì không cần chạy lại khi vuốt/thổi nến
+    if (isAudioUnlocked) return;
+
     if (hbBgm) {
-        hbBgm.play().then(() => {
-            hbBgm.pause();
-            hbBgm.currentTime = 0;
-        }).catch(() => { });
+        // Tắt tiếng trước khi mồi để nhạc không lọt ra ngoài
+        hbBgm.muted = true;
+
+        const playPromise = hbBgm.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                hbBgm.pause();
+                hbBgm.currentTime = 0;
+                hbBgm.muted = false; // Bật lại tiếng để lát pháo hoa kêu bình thường
+                isAudioUnlocked = true;
+            }).catch(() => {
+                // Xử lý lỗi nếu trình duyệt chặn
+                hbBgm.muted = false;
+            });
+        }
     }
+
+    // Mở khóa AudioContext cho tiếng đàn đá
     getAudioContext();
 }
 
