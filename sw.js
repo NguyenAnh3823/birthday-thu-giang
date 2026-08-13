@@ -1,4 +1,4 @@
-const CACHE_NAME = 'birthday-pwa-v3'; // Tăng version để ép client xóa cache cũ
+const CACHE_NAME = 'birthday-pwa-v4'; // Tăng version để ép client xóa cache cũ
 
 const STATIC_ASSETS = [
     './',
