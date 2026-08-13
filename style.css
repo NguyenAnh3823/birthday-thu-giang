@@ -146,7 +146,7 @@ img {
 
 .particles.bright {
     opacity: 0.95;
-    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9)) brightness(1.5);
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
 }
 
 .happy-birthday {
@@ -385,6 +385,7 @@ img {
 .cake-img {
     width: 100%;
     height: auto;
+    aspect-ratio: 1 / 1;
     filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.5));
     transition: filter 0.3s ease;
     pointer-events: none;
